@@ -17,7 +17,6 @@ export const main = Reach.App(() => {
     const Voters = API('Voters', {
         upvote: Fun([], UInt),
         downvote: Fun([], UInt),
-        contribute: Fun([UInt], UInt),
     });
     init();
     Deployer.only(() => {
@@ -29,42 +28,21 @@ export const main = Reach.App(() => {
         commit();
         Deployer.publish(title, link, owner, id, deadline);
         const [timeRemaining, keepGoing] = makeDeadline(deadline);
-        const contributors = new Map(Address, Address);
-        const amtContributed = new Map(Address, UInt);
-        const contributorsSet = new Set();
 
         const [
             upvote,
             downvote,
-            amtTotal,
-        ] = parallelReduce([0, 0, balance()])
-            .invariant(balance() == amtTotal)
+        ] = parallelReduce([0, 0])
+            .invariant(balance() == 0)
             .while(keepGoing())
             .api(Voters.upvote, (notify) => {
                 notify(upvote + 1);
-                return [upvote + 1, downvote, amtTotal];
+                return [upvote + 1, downvote];
             })
             .api(Voters.downvote, (notify) => {
                 notify(downvote + 1);
-                return [upvote, downvote + 1, amtTotal];
+                return [upvote, downvote + 1];
             })
-            .api_(Voters.contribute, (amt) => {
-                check(amt > 0, "Contribution too small");
-                const payment = amt;
-                return [payment, (notify) => {
-                    notify(balance());
-                    if (contributorsSet.member(this)) {
-                        const fromMapAmt = (m) => fromMaybe(m, (() => 0), ((x) => x));
-                        amtContributed[this] = fromMapAmt(amtContributed[this]) + amt;
-                    } else {
-                        contributors[this] = this;
-                        amtContributed[this] = amt;
-                        contributorsSet.insert(this);
-                    }
-                    return [upvote, downvote, amtTotal + amt];
-                }];
-            })
-        transfer(balance()).to(Deployer);
     } else {
         // The contract assumes that of the main contract
     }

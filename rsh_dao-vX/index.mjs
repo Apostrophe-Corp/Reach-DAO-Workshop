@@ -88,7 +88,6 @@ const setRole = async () => {
     console.log(`Reach DAO by Team 18`);
     console.info(``);
     console.log("Hello Attacher!");
-    const info = await ask.ask("Please enter the contract information", async x => { await attach(x); });
   }
 };
 
@@ -158,7 +157,7 @@ const connectAndClaimRefund = async ctcInfoStr => {
   }
 };
 
-const updateProposals = async ({ when, what }) => {
+const updateProposals = async ({ what }) => {
   await contractInstance.apis.Voters.created({
     id: parseInt(what[0]),
     title: noneNull(what[1]),
@@ -169,7 +168,7 @@ const updateProposals = async ({ when, what }) => {
   });
 };
 
-const createProposal = ({ when, what }) => {
+const createProposal = ({ what }) => {
   proposals.push({
     id: parseInt(what[0]),
     title: noneNull(what[1]),
@@ -186,7 +185,7 @@ const createProposal = ({ when, what }) => {
   });
 };
 
-const acknowledge = ({ when, what }) => {
+const acknowledge = ({ what }) => {
   const ifState = x => x.padEnd(20, "\u0000");
   switch (what[0]) {
     case ifState("upvoted"):
@@ -252,7 +251,7 @@ const acknowledge = ({ when, what }) => {
   }
 };
 
-const timeoutProposal = async ({ when, what }) => {
+const timeoutProposal = async ({ what }) => {
   const ifState = x => x.padEnd(20, "\u0000");
   switch (what[0]) {
     case ifState("passed"):
@@ -452,8 +451,7 @@ const showProposals = async () => {
   };
 
   const selectActiveProposal = async (page = 1) => {
-    let [i, section, activeProposals, proposalsOnDisplay] = [
-      0,
+    let [section, activeProposals, proposalsOnDisplay] = [
       page,
       proposals.filter(el => !el.timedOut),
       [],
@@ -565,15 +563,14 @@ Down_Votes: ${p.downvotes}\n
           await selectActiveProposal(section);
         }
         return;
-      } : async input => {
+      } : async () => {
         await showProposals();
       },
     );
   };
 
   const selectTimedOutProposal = async (page = 1) => {
-    let [i, section, timeoutProposals, proposalsOnDisplay] = [
-      0,
+    let [section, timeoutProposals, proposalsOnDisplay] = [
       page,
       proposals.filter(el => el.timedOut),
       [],
@@ -625,7 +622,7 @@ Link: ${p.link ?? "Link"}\n
           await selectActiveProposal(section);
         }
         return;
-      } : async input => {
+      } : async () => {
         await showProposals();
       },
     );
@@ -753,7 +750,7 @@ Grand_Prize: 99999 ${reach.standardUnit}\n
           await selectActiveBounty(section);
         }
         return;
-      } : async input => {
+      } : async () => {
         await showBounties();
       },
     );
