@@ -1,27 +1,5 @@
 'reach 0.1';
 
-const [isOutcome, NOT_PASSED, PASSED] = makeEnum(2);
-
-const state = Bytes(20);
-
-const checkStatus = (upVotes, downVotes) => {
-    if (downVotes > upVotes) {
-        return NOT_PASSED;
-    } else if (upVotes == downVotes) {
-        return NOT_PASSED;
-    } else {
-        return PASSED;
-    }
-};
-
-assert(checkStatus(100, 100) == NOT_PASSED);
-assert(checkStatus(50, 100) == NOT_PASSED);
-assert(checkStatus(100, 50) == PASSED);
-
-forall(UInt, upVotes =>
-    forall(UInt, downVotes =>
-        assert(isOutcome(checkStatus(upVotes, downVotes)))));
-
 export const main = Reach.App(() => {
     setOptions({ untrustworthyMaps: true });
     const Deployer = Participant('Deployer', {
@@ -35,14 +13,58 @@ export const main = Reach.App(() => {
             isProposal: Bool,
         }),
     });
+
+    const Voters = API('Voters', {
+        upvote: Fun([], UInt),
+        downvote: Fun([], UInt),
+        contribute: Fun([UInt], UInt),
+    });
     init();
     Deployer.only(() => {
-        const { isProposal } = declassify(interact.getProposal);
+        const { title, link, description, owner, id, isProposal, deadline } = declassify(interact.getProposal);
     });
-    Deployer.publish(isProposal);
+    Deployer.publish(description, isProposal);
 
     if (isProposal) {
-        // The contract assumes that of a proposal
+        commit();
+        Deployer.publish(title, link, owner, id, deadline);
+        const [timeRemaining, keepGoing] = makeDeadline(deadline);
+        const contributors = new Map(Address, Address);
+        const amtContributed = new Map(Address, UInt);
+        const contributorsSet = new Set();
+
+        const [
+            upvote,
+            downvote,
+            amtTotal,
+        ] = parallelReduce([0, 0, balance()])
+            .invariant(balance() == amtTotal)
+            .while(keepGoing())
+            .api(Voters.upvote, (notify) => {
+                notify(upvote + 1);
+                return [upvote + 1, downvote, amtTotal];
+            })
+            .api(Voters.downvote, (notify) => {
+                notify(downvote + 1);
+                return [upvote, downvote + 1, amtTotal];
+            })
+            .api_(Voters.contribute, (amt) => {
+                check(amt > 0, "Contribution too small");
+                const payment = amt;
+                return [payment, (notify) => {
+                    notify(balance());
+                    if (contributorsSet.member(this)) {
+                        const fromMapAmt = (m) => fromMaybe(m, (() => 0), ((x) => x));
+                        amtContributed[this] = fromMapAmt(amtContributed[this]) + amt;
+                    } else {
+                        contributors[this] = this;
+                        amtContributed[this] = amt;
+                        contributorsSet.insert(this);
+                    }
+                    return [upvote, downvote, amtTotal + amt];
+                }];
+            })
+        transfer(balance()).to(Deployer);
     } else {
         // The contract assumes that of the main contract
     }

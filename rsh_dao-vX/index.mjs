@@ -21,14 +21,13 @@ let [user, contractInstance, contract, proposals, bounties] = [
   {},
   [],
   [],
-  {},
 ];
 
 const connectAccount = async () => {
   console.clear();
 
   console.log(`Reach DAO by Team 18`);
-  console.info(contract.ctcInfoStr ? `${JSON.stringify(JSON.parse(contract.ctcInfoStr))}` : "");
+  console.info(``);
   console.log("Connect Account");
 
   const createAcc = await ask.ask(
@@ -71,7 +70,7 @@ const setRole = async () => {
     console.clear();
 
     console.log(`Reach DAO by Team 18`);
-    console.info(contract.ctcInfoStr ? `${JSON.stringify(JSON.parse(contract.ctcInfoStr))}` : "");
+    console.info(``);
     console.log("Welcome Admin!");
     const shouldDeploy = await ask.ask(
       `Proceed to deployment? [y/n]`,
@@ -87,7 +86,7 @@ const setRole = async () => {
     console.clear();
 
     console.log(`Reach DAO by Team 18`);
-    console.info(contract.ctcInfoStr ? `${JSON.stringify(JSON.parse(contract.ctcInfoStr))}` : "");
+    console.info(``);
     console.log("Hello Attacher!");
     const info = await ask.ask("Please enter the contract information", async x => { await attach(x); });
   }
@@ -286,7 +285,7 @@ const deploy = async () => {
   console.clear();
 
   console.log(`Reach DAO by Team 18`);
-  console.info(contract.ctcInfoStr ? `${JSON.stringify(JSON.parse(contract.ctcInfoStr))}` : "");
+  console.info(``);
   console.log("[..] Deploying");
   const ctc = user.account.contract(backend);
   contractInstance = ctc;
@@ -310,12 +309,12 @@ const deploy = async () => {
   console.clear();
 
   console.log(`Reach DAO by Team 18`);
-  console.info(contract.ctcInfoStr ? `${JSON.stringify(JSON.parse(contract.ctcInfoStr))}` : "");
+  console.info(``);
   console.log(`[+] Deployed`);
   console.group(`Here is the contract information`);
   console.log(`${JSON.stringify(JSON.parse(contract.ctcInfoStr))}`);
   console.groupEnd(`Here is the contract information`);
-  await sleep(3000);
+  await sleep(5000);
   await showInfoCenter();
 };
 

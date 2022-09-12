@@ -16,11 +16,7 @@ const interact = {
 console.log("[..] Deploying");
 ctc.p.Deployer(interact);
 
-const ctcInfoStr = JSON.stringify(await ctc.getInfo(), null, 2);
 console.log(`[+] Deployed`);
-console.group(`Here is the contract information`);
-console.log(`${JSON.stringify(JSON.parse(ctcInfoStr))}`);
-console.groupEnd(`Here is the contract information`);
 console.log("[..] Exiting Reach DAO");
 
 process.exit(0);
