@@ -20,6 +20,7 @@ export const main = Reach.App(() => {
         contribute: Fun([UInt], UInt),
     });
     init();
+
     Deployer.only(() => {
         const { title, link, description, owner, id, isProposal, deadline } = declassify(interact.getProposal);
     });
@@ -68,6 +69,7 @@ export const main = Reach.App(() => {
     } else {
         // The contract assumes that of the main contract
     }
+    
     commit();
     exit();
 });

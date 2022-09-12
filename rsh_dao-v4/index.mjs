@@ -15,9 +15,8 @@ const noneNull = (byte) => {
   return string;
 };
 
-let [user, contractInstance, contract, proposals, bounties] = [
+let [user, contract, proposals, bounties] = [
   {},
-  null,
   {},
   [],
   [],
@@ -100,10 +99,7 @@ const attach = async ctcInfoStr => {
   console.log("[..] Attaching");
   try {
     const ctc = user.account.contract(backend, JSON.parse(ctcInfoStr));
-    contractInstance = ctc;
     contract = { ctcInfoStr };
-    ctc.events.create.monitor(createProposal);
-    ctc.events.that.monitor(acknowledge);
     await showInfoCenter();
   } catch (error) {
     console.log({ error });
@@ -114,9 +110,15 @@ const connectAndUpvote = async (id, ctcInfoStr) => {
   try {
     const ctc = user.account.contract(backend, JSON.parse(ctcInfoStr));
     const upvotes = await ctc.apis.Voters.upvote();
-    await contractInstance.apis.Voters.upvoted(id, parseInt(upvotes));
+    proposals = proposals.map(el => {
+      if (el.id == id) {
+        el['upvotes'] = parseInt(upvotes);
+      }
+      return el;
+    });
+
   } catch (error) {
-    console.log({ error });
+    console.log("[‼] This proposal is currently not open to transactions");
   }
 };
 
@@ -124,9 +126,15 @@ const connectAndDownvote = async (id, ctcInfoStr) => {
   try {
     const ctc = user.account.contract(backend, JSON.parse(ctcInfoStr));
     const downvotes = await ctc.apis.Voters.downvote();
-    await contractInstance.apis.Voters.downvoted(id, parseInt(downvotes));
+    proposals = proposals.map(el => {
+      if (el.id == id) {
+        el['downvotes'] = parseInt(downvotes);
+      }
+      return el;
+    });
+
   } catch (error) {
-    console.log({ error });
+    console.log("[‼] This proposal is currently not open to transactions");
   }
 };
 
@@ -136,9 +144,15 @@ const makeContribution = async (amount, id, ctcInfoStr) => {
     const contribs = await ctc.apis.Voters.contribute(
       reach.parseCurrency(amount),
     );
-    await contractInstance.apis.Voters.contributed(id, parseInt(contribs));
+    proposals = proposals.map(el => {
+      if (el.id == id) {
+        el['contribs'] = reach.formatCurrency(contribs, 4);
+      }
+      return el;
+    });
+
   } catch (error) {
-    console.log({ error });
+    console.log("[‼] This proposal is currently not open to transactions");
   }
 };
 
@@ -158,18 +172,7 @@ const connectAndClaimRefund = async ctcInfoStr => {
   }
 };
 
-const updateProposals = async ({ what }) => {
-  await contractInstance.apis.Voters.created({
-    id: parseInt(what[0]),
-    title: noneNull(what[1]),
-    link: noneNull(what[2]),
-    description: noneNull(what[3]),
-    owner: noneNull(what[4]),
-    contractInfo: what[5],
-  });
-};
-
-const createProposal = ({ what }) => {
+const updateProposals = ({ what }) => {
   proposals.push({
     id: parseInt(what[0]),
     title: noneNull(what[1]),
@@ -186,59 +189,31 @@ const createProposal = ({ what }) => {
   });
 };
 
-const acknowledge = ({ what }) => {
+const timeoutProposal = ({ what }) => {
   const ifState = x => x.padEnd(20, "\u0000");
   switch (what[0]) {
-    case ifState("upvoted"):
-      const upProposals = proposals.map(el => {
-        if (Number(el.id) === Number(parseInt(what[1]))) {
-          el["upvotes"] = parseInt(what[2]);
-        }
-        return el;
-      });
-      proposals = upProposals;
-      break;
-    case ifState("downvoted"):
-      const downProposals = proposals.map(el => {
-        if (Number(el.id) === Number(parseInt(what[1]))) {
-          el["downvotes"] = parseInt(what[2]);
-        }
-        return el;
-      });
-      proposals = downProposals;
-      break;
-    case ifState("contributed"):
-      const conProposals = proposals.map(el => {
-        if (Number(el.id) === Number(parseInt(what[1]))) {
-          el["contribs"] = reach.formatCurrency(what[2], 4);
-        }
-        return el;
-      });
-      proposals = conProposals;
-      break;
-    case ifState("timedOut"):
-      if (parseInt(what[2])) {
-        const nBounty = proposals.filter(
-          el => Number(el.id) === Number(parseInt(what[1])),
-        )[0];
-        bounties.push(nBounty);
+    case ifState("passed"):
+      const nBounty = proposals.filter(
+        el => Number(el.id) === Number(parseInt(what[1])),
+      )[0];
+      bounties.push(nBounty);
 
-        const xXProposals = proposals.filter(
-          el => Number(el.id) !== Number(parseInt(what[1])),
-        );
-        proposals = xXProposals;
-      } else {
-        const fProposals = proposals.map(el => {
-          if (Number(el.id) === Number(parseInt(what[1]))) {
-            el["timedOut"] = true;
-            el["didPass"] = false;
-          }
-          return el;
-        });
-        proposals = fProposals;
-      }
+      const xXProposals = proposals.filter(
+        el => Number(el.id) !== Number(parseInt(what[1])),
+      );
+      proposals = xXProposals;
       break;
-    case ifState("projectDown"):
+    case ifState("failed"):
+      const fProposals = proposals.map(el => {
+        if (Number(el.id) === Number(parseInt(what[1]))) {
+          el["timedOut"] = true;
+          el["didPass"] = false;
+        }
+        return el;
+      });
+      proposals = fProposals;
+      break;
+    case ifState("down"):
       const remainingProposals = proposals.filter(el => {
         if (Number(el.id) === Number(parseInt(what[1]))) {
           el["isDown"] = true;
@@ -252,35 +227,6 @@ const acknowledge = ({ what }) => {
   }
 };
 
-const timeoutProposal = async ({ what }) => {
-  const ifState = x => x.padEnd(20, "\u0000");
-  switch (what[0]) {
-    case ifState("passed"):
-      try {
-        await contractInstance.apis.Voters.timedOut(parseInt(what[1]), 1);
-      } catch (error) {
-        console.log('[‼] A transaction clashed with a timeout');
-      }
-      break;
-    case ifState("failed"):
-      try {
-        await contractInstance.apis.Voters.timedOut(parseInt(what[1]), 0);
-      } catch (error) {
-        console.log('[‼] A transaction clashed with a timeout');
-      }
-      break;
-    case ifState("down"):
-      try {
-        await contractInstance.apis.Voters.projectDown(parseInt(what[1]));
-      } catch (error) {
-        console.log('[‼] A transaction clashed with a teardown');
-      }
-      break;
-    default:
-      break;
-  }
-};
-
 const deploy = async () => {
   console.clear();
 
@@ -288,7 +234,6 @@ const deploy = async () => {
   console.info(``);
   console.log("[..] Deploying");
   const ctc = user.account.contract(backend);
-  contractInstance = ctc;
   const interact = {
     getProposal: {
       id: 1,
@@ -303,8 +248,6 @@ const deploy = async () => {
 
   ctc.p.Deployer(interact);
   const ctcInfoStr = JSON.stringify(await ctc.getInfo(), null, 2);
-  ctc.events.create.monitor(createProposal);
-  ctc.events.that.monitor(acknowledge);
   contract = { ctcInfoStr };
   console.clear();
 
@@ -693,8 +636,7 @@ const showBounties = async () => {
   console.groupEnd(`Bounties`);
 
   const selectActiveBounty = async (page = 1) => {
-    let [i, section, activeBounties, bountiesOnDisplay] = [
-      0,
+    let [section, activeBounties, bountiesOnDisplay] = [
       page,
       bounties,
       [],

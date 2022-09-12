@@ -47,6 +47,7 @@ export const main = Reach.App(() => {
     } else {
         // The contract assumes that of the main contract
     }
+    
     commit();
     exit();
 });

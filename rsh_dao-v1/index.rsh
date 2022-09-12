@@ -14,6 +14,7 @@ export const main = Reach.App(() => {
         }),
     });
     init();
+
     Deployer.only(() => {
         const { isProposal } = declassify(interact.getProposal);
     });
@@ -24,6 +25,7 @@ export const main = Reach.App(() => {
     } else {
         // The contract assumes that of the main contract
     }
+    
     commit();
     exit();
 });

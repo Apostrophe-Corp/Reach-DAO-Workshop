@@ -126,24 +126,6 @@ const connectAndDownvote = async (id, ctcInfoStr) => {
   }
 };
 
-const makeContribution = async (amount, id, ctcInfoStr) => {
-  try {
-    const ctc = user.account.contract(backend, JSON.parse(ctcInfoStr));
-    const contribs = await ctc.apis.Voters.contribute(
-      reach.parseCurrency(amount),
-    );
-    proposals = proposals.map(el => {
-      if (el.id == id) {
-        el['contribs'] = reach.formatCurrency(contribs, 4);
-      }
-      return el;
-    });
-
-  } catch (error) {
-    console.log("[‼] This proposal is currently not open to transactions");
-  }
-};
-
 const deploy = async () => {
   console.clear();
 
@@ -158,7 +140,7 @@ const deploy = async () => {
       link: "https://github.com/Aro1914/AroTable/blob/main/README.md",
       description: `A self-sorting number data structure`,
       owner: user.account.networkAccount.addr,
-      deadline: { ETH: 5, ALGO: 50, CFX: 500 }[reach.connector],
+      deadline: { ETH: 2, ALGO: 20, CFX: 2000 }[reach.connector],
       isProposal: false,
     }
   };
@@ -181,7 +163,7 @@ const deploy = async () => {
 const makeProposal = async proposal => {
   const ctc = user.account.contract(backend);
   const proposalSetup = async () => {
-    const deadline = { ETH: 2, ALGO: 20, CFX: 200 }[reach.connector];
+    const deadline = { ETH: 2, ALGO: 20, CFX: 2000 }[reach.connector];
     ctc.p.Deployer({
       getProposal: {
         ...proposal,

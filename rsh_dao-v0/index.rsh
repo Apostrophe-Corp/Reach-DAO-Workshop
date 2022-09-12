@@ -6,10 +6,12 @@ export const main = Reach.App(() => {
         // The deployer's interact
     });
     init();
+
     Deployer.only(() => {
         // A local step
     });
     Deployer.publish();
+    
     commit();
     exit();
 });

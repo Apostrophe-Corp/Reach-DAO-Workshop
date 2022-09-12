@@ -16,7 +16,7 @@ const interact = {
     link: "https://github.com/Aro1914/AroTable/blob/main/README.md",
     description: `A self-sorting number data structure`,
     owner: user.networkAccount.addr,
-    deadline: { ETH: 5, ALGO: 50, CFX: 500 }[reach.connector],
+    deadline: { ETH: 2, ALGO: 20, CFX: 2000 }[reach.connector],
     isProposal: false,
   }
 };
