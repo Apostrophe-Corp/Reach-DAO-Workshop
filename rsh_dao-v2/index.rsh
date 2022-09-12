@@ -1,7 +1,7 @@
 'reach 0.1';
 
 export const main = Reach.App(() => {
-    setOptions({ untrustworthyMaps: true });
+
     const Deployer = Participant('Deployer', {
         getProposal: Object({
             id: UInt,
@@ -19,6 +19,7 @@ export const main = Reach.App(() => {
         downvote: Fun([], UInt),
     });
     init();
+
     Deployer.only(() => {
         const { title, link, description, owner, id, isProposal, deadline } = declassify(interact.getProposal);
     });

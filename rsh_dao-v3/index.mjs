@@ -203,6 +203,10 @@ const makeProposal = async proposal => {
 };
 
 /**
+ * End of declarations and definitions
+ */
+
+/**
  * The build for interactivity
  */
 
@@ -329,6 +333,7 @@ Title: ${p.title ?? "Title"}
 Description: ${p.description ?? "Description"}
 Owner: ${p.owner ?? user.account.networkAccount.addr}
 Link: ${p.link ?? "Link"}
+Contributions: ${p.contribs ?? 0} ${reach.standardUnit}
 Up_Votes: ${p.upvotes}
 Down_Votes: ${p.downvotes}\n
 `);
@@ -354,8 +359,9 @@ Down_Votes: ${p.downvotes}\n
         ) {
           const selectedProposal = proposalsOnDisplay[input - 1];
           const action = await ask.ask(`What would you like to do?
-  1. Up vote
-  2. Down vote
+  1. Contribute
+  2. Up vote
+  3. Down vote
   0. Cancel`,
             x => {
               if (Number(x) == NaN) {
@@ -366,6 +372,27 @@ Down_Votes: ${p.downvotes}\n
 
           switch (action) {
             case 1:
+              const amount = await ask.ask(
+                `Please enter the amount in ${reach.standardUnit}`,
+                x => {
+                  try {
+                    x = Number(x);
+                  } catch (error) {
+                    throw Error("[‼] Please enter a valid number");
+                  }
+                  return x;
+                },
+              );
+              console.log('[..] Processing contribution');
+              await makeContribution(
+                amount,
+                selectedProposal.id,
+                selectedProposal.contract,
+              ).then(async () => {
+                await showProposals();
+              });
+              break;
+            case 2:
               console.log('[..] Processing up vote');
               await connectAndUpvote(
                 selectedProposal.id,
@@ -374,7 +401,7 @@ Down_Votes: ${p.downvotes}\n
                 await showProposals();
               });
               break;
-            case 2:
+            case 3:
               console.log('[..] Processing down vote');
               await connectAndDownvote(
                 selectedProposal.id,
