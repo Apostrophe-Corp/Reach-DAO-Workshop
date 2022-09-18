@@ -4,10 +4,16 @@ const reach = loadStdlib()
 
 console.clear()
 
-const user = await reach.newTestAccount(reach.parseCurrency(1000))
-
 console.log(`Reach DAO by Team 18`)
-console.log(`Wallet Balance: ${await reach.balanceOf(user)}`)
+console.log(`[.] Creating the Deployer's test account..`)
+const user = await reach.newTestAccount(reach.parseCurrency(1000))
+console.log(
+	`[+] Account created and initialized with ${reach.formatCurrency(
+		await reach.balanceOf(user),
+		4
+	)} ${reach.standardUnit}`
+)
+console.log(`[.] Starting Backend`)
 const ctc = user.contract(backend)
 
 const interact = {
@@ -22,10 +28,12 @@ const interact = {
 	},
 }
 
-console.log('[..] Deploying')
+console.log('[.] Deploying')
 ctc.p.Deployer(interact)
+console.log(
+	`[+] Deployed with info: ${JSON.stringify(await ctc.getInfo(), null)}`
+)
 
-console.log(`[+] Deployed`)
-console.log('[..] Exiting Reach DAO')
+console.log('[.] Exiting Reach DAO')
 
 process.exit(0)

@@ -15,7 +15,7 @@ We assume that you'll go through this workshop in a directory named `~/reach/rsh
 And that you have a copy of Reach installed in `~/reach/rsh_dao-ws`, so that you can write
 
 ```shell
-> ./reach Version
+> ./reach version
 ```
 
 And it will run Reach.

@@ -93,12 +93,8 @@ const attach = async (ctcInfoStr) => {
 
 	console.log(`Reach DAO by Team 18`)
 	console.log(`Wallet Balance: ${await user.balance()}`)
-	console.info(
-		contract.ctcInfoStr
-			? `${JSON.stringify(JSON.parse(contract.ctcInfoStr))}`
-			: ''
-	)
-	console.log('[..] Attaching')
+	console.info(contract.ctcInfoStr ? contract.ctcInfoStr : '')
+	console.log('[.] Attaching')
 	try {
 		const ctc = user.account.contract(backend, JSON.parse(ctcInfoStr))
 		contract = { ctcInfoStr }
@@ -161,7 +157,7 @@ const deploy = async () => {
 	console.log(`Reach DAO by Team 18`)
 	console.log(`Wallet Balance: ${await user.balance()}`)
 	console.info(``)
-	console.log('[..] Deploying')
+	console.log('[.] Deploying')
 	const ctc = user.account.contract(backend)
 	const interact = {
 		getProposal: {
@@ -176,7 +172,7 @@ const deploy = async () => {
 	}
 
 	ctc.p.Deployer(interact)
-	const ctcInfoStr = JSON.stringify(await ctc.getInfo(), null, 2)
+	const ctcInfoStr = JSON.stringify(await ctc.getInfo(), null)
 	contract = { ctcInfoStr }
 	console.clear()
 
@@ -185,7 +181,7 @@ const deploy = async () => {
 	console.info(``)
 	console.log(`[+] Deployed`)
 	console.group(`Here is the contract information`)
-	console.log(`${JSON.stringify(JSON.parse(contract.ctcInfoStr))}`)
+	console.log(`${contract.ctcInfoStr}`)
 	console.groupEnd(`Here is the contract information`)
 	await sleep(5000)
 	await showInfoCenter()
@@ -220,11 +216,7 @@ const showInfoCenter = async () => {
 
 	console.log(`Reach DAO by Team 18`)
 	console.log(`Wallet Balance: ${await user.balance()}`)
-	console.info(
-		contract.ctcInfoStr
-			? `${JSON.stringify(JSON.parse(contract.ctcInfoStr))}`
-			: ''
-	)
+	console.info(contract.ctcInfoStr ? contract.ctcInfoStr : '')
 	console.group(`Info Center`)
 	console.log(`Welcome! To the new Hub!`)
 	console.groupEnd(`Info Center`)
@@ -273,11 +265,7 @@ const showProposals = async () => {
 
 	console.log(`Reach DAO by Team 18`)
 	console.log(`Wallet Balance: ${await user.balance()}`)
-	console.info(
-		contract.ctcInfoStr
-			? `${JSON.stringify(JSON.parse(contract.ctcInfoStr))}`
-			: ''
-	)
+	console.info(contract.ctcInfoStr ? contract.ctcInfoStr : '')
 	console.group(`Proposals`)
 	console.log(`Get the chance to bring your ideas to life!`)
 	console.groupEnd(`Proposals`)
@@ -301,7 +289,7 @@ const showProposals = async () => {
 		)
 
 		const satisfied = await ask.ask(
-			`Are you satisfied with these details? [y/n]
+			`[‼] Are you satisfied with these details? [y/n]
   Title: ${title}
   Link: ${link}
   Description: ${description}`,
@@ -325,7 +313,7 @@ const showProposals = async () => {
 				description,
 				owner: user.account.networkAccount.addr,
 			}
-			console.log('[..] Creating proposal')
+			console.log('[.] Creating proposal')
 			await makeProposal(proposal).then(async () => {
 				await showProposals()
 			})
@@ -385,7 +373,7 @@ Down_Votes: ${p.downvotes}\n
 							const selectedProposal =
 								proposalsOnDisplay[input - 1]
 							const action = await ask.ask(
-								`What would you like to do?
+								`[+] What would you like to do?
   1. Contribute
   2. Up vote
   3. Down vote
@@ -404,7 +392,7 @@ Down_Votes: ${p.downvotes}\n
 							switch (action) {
 								case 1:
 									const amount = await ask.ask(
-										`Please enter the amount in ${reach.standardUnit}`,
+										`[+] Please enter the amount in ${reach.standardUnit}`,
 										(x) => {
 											try {
 												x = Number(x)
@@ -416,7 +404,7 @@ Down_Votes: ${p.downvotes}\n
 											return x
 										}
 									)
-									console.log('[..] Processing contribution')
+									console.log('[.] Processing contribution')
 									await makeContribution(
 										amount,
 										selectedProposal.id,
@@ -426,7 +414,7 @@ Down_Votes: ${p.downvotes}\n
 									})
 									break
 								case 2:
-									console.log('[..] Processing up vote')
+									console.log('[.] Processing up vote')
 									await connectAndUpvote(
 										selectedProposal.id,
 										selectedProposal.contract
@@ -435,7 +423,7 @@ Down_Votes: ${p.downvotes}\n
 									})
 									break
 								case 3:
-									console.log('[..] Processing down vote')
+									console.log('[.] Processing down vote')
 									await connectAndDownvote(
 										selectedProposal.id,
 										selectedProposal.contract
