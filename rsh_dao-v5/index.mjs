@@ -3,6 +3,14 @@ import * as backend from './build/index.main.mjs'
 const reach = loadStdlib()
 
 const sleep = (mSecs) => new Promise((resolve) => setTimeout(resolve, mSecs))
+const alertThis = async (message, positive = true) => {
+	if (positive) {
+		console.log(`[+] ${message}`)
+	} else {
+		console.log(`[‼] ${message}`)
+	}
+	await sleep(message.length * 100)
+}
 const noneNull = (byte) => {
 	let string = '',
 		i = 0
@@ -10,6 +18,7 @@ const noneNull = (byte) => {
 		if (String(byte[i]) !== String('\u0000')) string += byte[i]
 	return string
 }
+const deadline = { ETH: 2, ALGO: 20, CFX: 2000 }[reach.connector]
 
 let [
 	user,
@@ -21,7 +30,8 @@ let [
 	contribResolve,
 	upvoteResolve,
 	downvoteResolve,
-] = [{}, null, {}, [], [], {}, {}, {}, {}]
+	reevaluationReject,
+] = [{}, null, {}, [], [], {}, {}, {}, {}, {}]
 
 const connectAccount = async () => {
 	console.clear()
@@ -48,27 +58,42 @@ const connectAccount = async () => {
 		}
 	} else {
 		const secret = await ask.ask(`What is your account secret?`, (x) => x)
-		const account = await reach.newAccountFromSecret(secret)
-		user = {
-			account,
-			balance: async () => {
-				const balAtomic = await reach.balanceOf(account)
-				const balance = reach.formatCurrency(balAtomic, 4)
-				return balance
-			},
+		try {
+			const account = await reach.newAccountFromSecret(secret)
+			user = {
+				account,
+				balance: async () => {
+					const balAtomic = await reach.balanceOf(account)
+					const balance = reach.formatCurrency(balAtomic, 4)
+					return balance
+				},
+			}
+		} catch (error) {
+			await alertThis('Failed to connect account', false)
+			await connectAccount()
 		}
 	}
 	await setRole()
 }
 
 const setRole = async () => {
+	;[
+		contractInstance,
+		contract,
+		proposals,
+		bounties,
+		createResolve,
+		contribResolve,
+		upvoteResolve,
+		downvoteResolve,
+		reevaluationReject,
+	] = [null, {}, [], [], {}, {}, {}, {}, {}]
 	console.clear()
 
 	console.log(`Reach DAO by Team 18`)
 	console.log(`Wallet Balance: ${await user.balance()}`)
 	console.log(``)
 	console.log('Select Role')
-	contract = {}
 
 	const isDeployer = await ask.ask('Are you the Admin? [y/n]', ask.yesno)
 
@@ -120,7 +145,64 @@ const attach = async (ctcInfoStr) => {
 		ctc.events.that.monitor(acknowledge)
 		await showInfoCenter()
 	} catch (error) {
-		console.log({ error })
+		await alertThis(`Unable to attach`, false)
+		await setRole()
+	}
+}
+
+const reevaluate = async ({
+	id,
+	blockCreated,
+	upvotes,
+	downvotes,
+	contribs,
+}) => {
+	try {
+		const currentConsensusTime = parseInt(
+			await contractInstance.apis.Voters.checkTime()
+		)
+		if (blockCreated + deadline < currentConsensusTime) {
+			if (upvotes > downvotes) {
+				const nBounty = proposals.filter((el) => Number(el.id) === id)[0]
+				bounties.push(nBounty)
+
+				const xXProposals = proposals.filter((el) => Number(el.id) !== id)
+				proposals = xXProposals
+				await alertThis(
+					'This proposal seems to have missed becoming a bounty, check the Bounty View'
+				)
+			} else if (contribs > 0) {
+				const fProposals = proposals.map((el) => {
+					if (Number(el.id) === id) {
+						el['timedOut'] = true
+						el['didPass'] = false
+					}
+					return el
+				})
+				proposals = fProposals
+				await alertThis(
+					'This proposal already failed with funds, you can now find it on the Timed Out Proposals list'
+				)
+			} else {
+				const remainingProposals = proposals.filter((el) => {
+					if (Number(el.id) === id) {
+						el['isDown'] = true
+					}
+					return Number(el.id) !== id
+				})
+				proposals = remainingProposals
+				await alertThis(
+					'This appears to be a rogue proposal, it has been taken down'
+				)
+			}
+		} else {
+			await alertThis(
+				'Evaluation failed, please contact Reach DAO technical team on Discord',
+				false
+			)
+		}
+	} catch (error) {
+		await alertThis('Unable to reevaluate proposal', false)
 	}
 }
 
@@ -130,7 +212,8 @@ const connectAndUpvote = async (id, ctcInfoStr) => {
 		const upvotes = await ctc.apis.Voters.upvote()
 		await contractInstance.apis.Voters.upvoted(id, parseInt(upvotes))
 	} catch (error) {
-		console.log({ error })
+		await alertThis('Unable to process up vote', false)
+		upvoteResolve?.reject && upvoteResolve.reject()
 	}
 }
 
@@ -140,7 +223,8 @@ const connectAndDownvote = async (id, ctcInfoStr) => {
 		const downvotes = await ctc.apis.Voters.downvote()
 		await contractInstance.apis.Voters.downvoted(id, parseInt(downvotes))
 	} catch (error) {
-		console.log({ error })
+		await alertThis('Unable to process down vote', false)
+		downvoteResolve?.reject && downvoteResolve.reject()
 	}
 }
 
@@ -152,38 +236,54 @@ const makeContribution = async (amount, id, ctcInfoStr) => {
 		)
 		await contractInstance.apis.Voters.contributed(id, parseInt(contribs))
 	} catch (error) {
-		console.log({ error })
+		await alertThis('Unable to process contribution', false)
+		contribResolve?.reject && contribResolve.reject()
 	}
 }
 
-const connectAndClaimRefund = async (ctcInfoStr) => {
+const connectAndClaimRefund = async (id, ctcInfoStr) => {
 	try {
 		const ctc = user.account.contract(backend, JSON.parse(ctcInfoStr))
-		const didRefund = await ctc.apis.Voters.claimRefund()
-		if (didRefund) {
-			console.log('[+] Refund Success')
+		const result = await ctc.apis.Voters.claimRefund()
+		if (result.didRefund) {
+			const conProposals = proposals.map((el) => {
+				if (Number(el.id) === id) {
+					el['contribs'] = reach.formatCurrency(result.balance, 4)
+				}
+				return el
+			})
+			proposals = conProposals
+			await alertThis('Success')
 		} else {
-			console.log(
-				"[‼] It seems you don't have funds to claim, did you contribute to this proposal?"
+			await alertThis(
+				`It seems you don't have funds to claim, did you contribute to this proposal?`,
+				false
 			)
 		}
+		refundResolve?.resolve && refundResolve.resolve(didRefund)
 	} catch (error) {
-		console.log({ error })
+		await alertThis('Request failed', false)
 	}
 }
 
 const updateProposals = async ({ what }) => {
-	await contractInstance.apis.Voters.created({
-		id: parseInt(what[0]),
-		title: noneNull(what[1]),
-		link: noneNull(what[2]),
-		description: noneNull(what[3]),
-		owner: noneNull(what[4]),
-		contractInfo: what[5],
-	})
+	try {
+		await contractInstance.apis.Voters.created({
+			id: parseInt(what[0]),
+			title: noneNull(what[1]),
+			link: noneNull(what[2]),
+			description: noneNull(what[3]),
+			owner: noneNull(what[4]),
+			contractInfo: what[5],
+			blockCreated: parseInt(what[6]),
+		})
+	} catch (error) {
+		await alertThis('Failed to update proposals', false)
+		createResolve?.resolve && createResolve.resolve()
+	}
 }
 
-const createProposal = ({ what }) => {
+const createProposal = async ({ when, what }) => {
 	proposals.push({
 		id: parseInt(what[0]),
 		title: noneNull(what[1]),
@@ -191,6 +291,7 @@ const createProposal = ({ what }) => {
 		description: noneNull(what[3]),
 		owner: noneNull(what[4]),
 		contract: JSON.stringify(what[5]),
+		blockCreated: parseInt(what[6]),
 		upvotes: 0,
 		downvotes: 0,
 		contribs: 0,
@@ -198,10 +299,14 @@ const createProposal = ({ what }) => {
 		didPass: false,
 		isDown: false,
 	})
-	createResolve.resolve()
+	createResolve?.resolve &&
+		(async () => {
+			await alertThis('Created')
+			createResolve.resolve()
+		})()
 }
 
-const acknowledge = ({ what }) => {
+const acknowledge = async ({ what }) => {
 	const ifState = (x) => x.padEnd(20, '\u0000')
 	switch (what[0]) {
 		case ifState('upvoted'):
@@ -212,7 +317,12 @@ const acknowledge = ({ what }) => {
 				return el
 			})
 			proposals = upProposals
-			upvoteResolve.resolve()
+
+			upvoteResolve?.resolve &&
+				(async () => {
+					await alertThis('Success')
+					upvoteResolve.resolve()
+				})()
 			break
 		case ifState('downvoted'):
 			const downProposals = proposals.map((el) => {
@@ -222,7 +332,12 @@ const acknowledge = ({ what }) => {
 				return el
 			})
 			proposals = downProposals
-			downvoteResolve.resolve()
+
+			downvoteResolve?.resolve &&
+				(async () => {
+					await alertThis('Success')
+					downvoteResolve.resolve()
+				})()
 			break
 		case ifState('contributed'):
 			const conProposals = proposals.map((el) => {
@@ -232,7 +347,12 @@ const acknowledge = ({ what }) => {
 				return el
 			})
 			proposals = conProposals
-			contribResolve.resolve()
+
+			contribResolve?.resolve &&
+				(async () => {
+					await alertThis('Success')
+					contribResolve.resolve()
+				})()
 			break
 		case ifState('timedOut'):
 			if (parseInt(what[2])) {
@@ -275,29 +395,21 @@ const timeoutProposal = async ({ what }) => {
 	switch (what[0]) {
 		case ifState('passed'):
 			try {
-				await contractInstance.apis.Voters.timedOut(
-					parseInt(what[1]),
-					1
-				)
+				await contractInstance.apis.Voters.timedOut(parseInt(what[1]), 1)
 			} catch (error) {
 				console.log('[‼] A transaction clashed with a timeout')
 			}
 			break
 		case ifState('failed'):
 			try {
-				await contractInstance.apis.Voters.timedOut(
-					parseInt(what[1]),
-					0
-				)
+				await contractInstance.apis.Voters.timedOut(parseInt(what[1]), 0)
 			} catch (error) {
 				console.log('[‼] A transaction clashed with a timeout')
 			}
 			break
 		case ifState('down'):
 			try {
-				await contractInstance.apis.Voters.projectDown(
-					parseInt(what[1])
-				)
+				await contractInstance.apis.Voters.projectDown(parseInt(what[1]))
 			} catch (error) {
 				console.log('[‼] A transaction clashed with a teardown')
 			}
@@ -348,7 +460,6 @@ const deploy = async () => {
 
 const makeProposal = async (proposal) => {
 	const proposalSetup = async () => {
-		const deadline = { ETH: 3, ALGO: 30, CFX: 3000 }[reach.connector]
 		const ctc = user.account.contract(backend)
 		ctc.p.Deployer({
 			getProposal: {
@@ -385,10 +496,7 @@ const showInfoCenter = async () => {
 				await setRole()
 				break
 			case 0:
-				const confirmed = await ask.ask(
-					`[‼] Confirm exit [y/n]`,
-					ask.yesno
-				)
+				const confirmed = await ask.ask(`[‼] Confirm exit [y/n]`, ask.yesno)
 				if (confirmed) process.exit(0)
 				else await showInfoCenter()
 				break
@@ -429,9 +537,8 @@ const showProposals = async () => {
 	const getProposalInfo = async () => {
 		let [title, link, description] = ['', '', '']
 
-		title = await ask.ask(
-			`[+] Enter the Proposal's Title Max (25)`,
-			(value) => String(value).slice(0, 25)
+		title = await ask.ask(`[+] Enter the Proposal's Title Max (25)`, (value) =>
+			String(value).slice(0, 25)
 		)
 
 		link = await ask.ask(
@@ -459,9 +566,7 @@ const showProposals = async () => {
 						? proposals.length === 1
 							? proposals[0].id + 1
 							: Number(
-									proposals.reduce((a, b) =>
-										a.id > b.id ? a.id : b.id
-									)
+									proposals.reduce((a, b) => (a.id > b.id ? a.id : b.id))
 							  ) + 1
 						: 1,
 				title,
@@ -474,7 +579,7 @@ const showProposals = async () => {
 				await new Promise((resolve) => {
 					createResolve['resolve'] = resolve
 				})
-				showProposals()
+				await showProposals()
 			})
 		} else {
 			await getProposalInfo()
@@ -517,7 +622,7 @@ Down_Votes: ${p.downvotes}\n
 		section < Math.ceil(activeProposals.length / 3)
 			? 'Enter 99 to view the next list'
 			: ''
-  }
+	}
   ${section > 1 ? 'Enter 88 to view the previous list' : ''}
   Or enter 0 to exit`
 				: '[+] Enter any key to exit',
@@ -529,8 +634,7 @@ Down_Votes: ${p.downvotes}\n
 							Number(input) <= proposalsOnDisplay.length &&
 							Number(input) >= 1
 						) {
-							const selectedProposal =
-								proposalsOnDisplay[input - 1]
+							const selectedProposal = proposalsOnDisplay[input - 1]
 							const action = await ask.ask(
 								`[+] What would you like to do?
   1. Contribute
@@ -539,9 +643,7 @@ Down_Votes: ${p.downvotes}\n
   0. Cancel`,
 								(x) => {
 									if (Number(x) == NaN) {
-										throw Error(
-											'[‼] Please enter a valid input'
-										)
+										throw Error('[‼] Please enter a valid input')
 									} else {
 										return Number(x)
 									}
@@ -553,42 +655,54 @@ Down_Votes: ${p.downvotes}\n
 									const amount = await ask.ask(
 										`[+] Please enter the amount in ${reach.standardUnit}`,
 										(x) => {
-											try {
-												x = Number(x)
-											} catch (error) {
-												throw Error(
-													'[‼] Please enter a valid number'
-												)
+											if (Number(x) == NaN) {
+												throw Error('[‼] Please enter a valid number')
+											} else {
+												return Number(x)
 											}
-											return x
 										}
 									)
 									console.log('[.] Processing contribution')
-									await makeContribution(
-										amount,
-										selectedProposal.id,
-										selectedProposal.contract
-									).then(async () => {
-										await showProposals()
+									await new Promise(async (resolve, reject) => {
+										contribResolve['resolve'] = resolve
+										contribResolve['reject'] = reject
+										await makeContribution(
+											amount,
+											selectedProposal.id,
+											selectedProposal.contract
+										)
+									}).catch(async () => {
+										await reevaluate(selectedProposal)
 									})
+									await selectActiveProposal(section)
 									break
 								case 2:
 									console.log('[.] Processing up vote')
-									await connectAndUpvote(
-										selectedProposal.id,
-										selectedProposal.contract
-									).then(async () => {
-										await showProposals()
+									await new Promise(async (resolve, reject) => {
+										upvoteResolve['resolve'] = resolve
+										upvoteResolve['reject'] = reject
+										await connectAndUpvote(
+											selectedProposal.id,
+											selectedProposal.contract
+										)
+									}).catch(async () => {
+										await reevaluate(selectedProposal)
 									})
+									await selectActiveProposal(section)
 									break
 								case 3:
 									console.log('[.] Processing down vote')
-									await connectAndDownvote(
-										selectedProposal.id,
-										selectedProposal.contract
-									).then(async () => {
-										await showProposals()
+									await new Promise(async (resolve, reject) => {
+										downvoteResolve['resolve'] = resolve
+										downvoteResolve['reject'] = reject
+										await connectAndDownvote(
+											selectedProposal.id,
+											selectedProposal.contract
+										)
+									}).catch(async () => {
+										await reevaluate(selectedProposal)
 									})
+									await selectActiveProposal(section)
 									break
 								case 0:
 									await selectActiveProposal(section)
@@ -650,7 +764,7 @@ Link: ${p.link ?? 'Link'}\n
 		section < Math.ceil(timeoutProposals.length / 3)
 			? 'Enter 99 to view the next list'
 			: ''
-  }
+	}
   ${section > 1 ? 'Enter 88 to view the previous list' : ''}
   Or enter 0 to exit`
 				: '[+] Enter any key to exit',
@@ -662,9 +776,10 @@ Link: ${p.link ?? 'Link'}\n
 							Number(input) <= proposalsOnDisplay.length &&
 							Number(input) >= 1
 						) {
-							const selectedProposal =
-								proposalsOnDisplay[input - 1]
+							const selectedProposal = proposalsOnDisplay[input - 1]
+							console.log(`[+] Processing request`)
 							await connectAndClaimRefund(
+								selectedProposal.id,
 								selectedProposal.contract
 							)
 							await showProposals()
@@ -672,7 +787,7 @@ Link: ${p.link ?? 'Link'}\n
 							await selectActiveProposal(section - 1)
 						} else if (
 							input == 99 &&
-							section < Math.ceil(activeProposals.length / 3)
+							section < Math.ceil(timeoutProposals.length / 3)
 						) {
 							await selectActiveProposal(section + 1)
 						} else {
@@ -709,10 +824,7 @@ Link: ${p.link ?? 'Link'}\n
 				await setRole()
 				break
 			case 0:
-				const confirmed = await ask.ask(
-					`[‼] Confirm exit [y/n]`,
-					ask.yesno
-				)
+				const confirmed = await ask.ask(`[‼] Confirm exit [y/n]`, ask.yesno)
 				if (confirmed) process.exit(0)
 				else await showProposals()
 				break
@@ -788,7 +900,7 @@ Grand_Prize: 99999 ${reach.standardUnit}\n
 		section < Math.ceil(activeBounties.length / 3)
 			? 'Enter 99 to view the next list'
 			: ''
-  }
+	}
   ${section > 1 ? 'Enter 88 to view the previous list' : ''}
   Or enter 0 to exit`
 				: '[+] Enter any key to exit',
@@ -800,7 +912,7 @@ Grand_Prize: 99999 ${reach.standardUnit}\n
 							Number(input) <= bountiesOnDisplay.length &&
 							Number(input) >= 1
 						) {
-							console.log(`[+] Thanks for showing your interest in this quest.
+							await alertThis(`[+] Thanks for showing your interest in this quest.
   Stick around a while and our Guild would be fully operational.
   Until then, get your weapons, armor and, party members ready!!!`)
 							await sleep(5000)
@@ -809,7 +921,7 @@ Grand_Prize: 99999 ${reach.standardUnit}\n
 							await selectActiveBounty(section - 1)
 						} else if (
 							input == 99 &&
-							section < Math.ceil(activeProposals.length / 3)
+							section < Math.ceil(activeBounties.length / 3)
 						) {
 							await selectActiveBounty(section + 1)
 						} else {
@@ -840,10 +952,7 @@ Grand_Prize: 99999 ${reach.standardUnit}\n
 				await setRole()
 				break
 			case 0:
-				const confirmed = await ask.ask(
-					`[‼] Confirm exit [y/n]`,
-					ask.yesno
-				)
+				const confirmed = await ask.ask(`[‼] Confirm exit [y/n]`, ask.yesno)
 				if (confirmed) process.exit(0)
 				else await showBounties()
 				break

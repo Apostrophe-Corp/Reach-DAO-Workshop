@@ -100,7 +100,8 @@ const attach = async (ctcInfoStr) => {
 		contract = { ctcInfoStr }
 		await showInfoCenter()
 	} catch (error) {
-		console.log({ error })
+		await alertThis(`Unable to attach`, false)
+		await setRole()
 	}
 }
 

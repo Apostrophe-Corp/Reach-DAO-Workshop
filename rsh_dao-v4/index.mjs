@@ -107,7 +107,8 @@ const attach = async (ctcInfoStr) => {
 		contract = { ctcInfoStr }
 		await showInfoCenter()
 	} catch (error) {
-		console.log({ error })
+		await alertThis(`Unable to attach`, false)
+		await setRole()
 	}
 }
 
@@ -588,7 +589,7 @@ Link: ${p.link ?? 'Link'}\n
 							await selectActiveProposal(section - 1)
 						} else if (
 							input == 99 &&
-							section < Math.ceil(activeProposals.length / 3)
+							section < Math.ceil(timeoutProposals.length / 3)
 						) {
 							await selectActiveProposal(section + 1)
 						} else {
