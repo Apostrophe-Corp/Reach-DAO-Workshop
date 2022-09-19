@@ -281,7 +281,7 @@ const updateProposals = async ({ what }) => {
 	}
 }
 
-const createProposal = async ({ when, what }) => {
+const createProposal = async ({ what }) => {
 	proposals.push({
 		id: parseInt(what[0]),
 		title: noneNull(what[1]),
