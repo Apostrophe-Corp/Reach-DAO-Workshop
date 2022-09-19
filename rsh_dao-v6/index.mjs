@@ -26,10 +26,10 @@ let [
 	contract,
 	proposals,
 	bounties,
-	createResolve,
-	contribResolve,
-	upvoteResolve,
-	downvoteResolve,
+	createPromise,
+	contribPromise,
+	upvotePromise,
+	downvotePromise,
 ] = [{}, null, {}, [], [], {}, {}, {}, {}]
 
 const connectAccount = async () => {
@@ -81,10 +81,10 @@ const setRole = async () => {
 		contract,
 		proposals,
 		bounties,
-		createResolve,
-		contribResolve,
-		upvoteResolve,
-		downvoteResolve,
+		createPromise,
+		contribPromise,
+		upvotePromise,
+		downvotePromise,
 	] = [null, {}, [], [], {}, {}, {}, {}]
 	console.clear()
 
@@ -211,7 +211,7 @@ const connectAndUpvote = async (id, ctcInfoStr) => {
 		await contractInstance.apis.Voters.upvoted(id, parseInt(upvotes))
 	} catch (error) {
 		await alertThis('Unable to process up vote', false)
-		upvoteResolve?.reject && upvoteResolve.reject()
+		upvotePromise?.reject && upvotePromise.reject()
 	}
 }
 
@@ -222,7 +222,7 @@ const connectAndDownvote = async (id, ctcInfoStr) => {
 		await contractInstance.apis.Voters.downvoted(id, parseInt(downvotes))
 	} catch (error) {
 		await alertThis('Unable to process down vote', false)
-		downvoteResolve?.reject && downvoteResolve.reject()
+		downvotePromise?.reject && downvotePromise.reject()
 	}
 }
 
@@ -235,7 +235,7 @@ const makeContribution = async (amount, id, ctcInfoStr) => {
 		await contractInstance.apis.Voters.contributed(id, parseInt(contribs))
 	} catch (error) {
 		await alertThis('Unable to process contribution', false)
-		contribResolve?.reject && contribResolve.reject()
+		contribPromise?.reject && contribPromise.reject()
 	}
 }
 
@@ -277,7 +277,7 @@ const updateProposals = async ({ what }) => {
 		})
 	} catch (error) {
 		await alertThis('Failed to update proposals', false)
-		createResolve?.resolve && createResolve.resolve()
+		createPromise?.resolve && createPromise.resolve()
 	}
 }
 
@@ -297,10 +297,10 @@ const createProposal = async ({ when, what }) => {
 		didPass: false,
 		isDown: false,
 	})
-	createResolve?.resolve &&
+	createPromise?.resolve &&
 		(async () => {
 			await alertThis('Created')
-			createResolve.resolve()
+			createPromise.resolve()
 		})()
 }
 
@@ -316,10 +316,10 @@ const acknowledge = async ({ what }) => {
 			})
 			proposals = upProposals
 
-			upvoteResolve?.resolve &&
+			upvotePromise?.resolve &&
 				(async () => {
 					await alertThis('Success')
-					upvoteResolve.resolve()
+					upvotePromise.resolve()
 				})()
 			break
 		case ifState('downvoted'):
@@ -331,10 +331,10 @@ const acknowledge = async ({ what }) => {
 			})
 			proposals = downProposals
 
-			downvoteResolve?.resolve &&
+			downvotePromise?.resolve &&
 				(async () => {
 					await alertThis('Success')
-					downvoteResolve.resolve()
+					downvotePromise.resolve()
 				})()
 			break
 		case ifState('contributed'):
@@ -346,10 +346,10 @@ const acknowledge = async ({ what }) => {
 			})
 			proposals = conProposals
 
-			contribResolve?.resolve &&
+			contribPromise?.resolve &&
 				(async () => {
 					await alertThis('Success')
-					contribResolve.resolve()
+					contribPromise.resolve()
 				})()
 			break
 		case ifState('timedOut'):
@@ -575,7 +575,7 @@ const showProposals = async () => {
 			console.log('[.] Creating proposal')
 			await makeProposal(proposal).then(async () => {
 				await new Promise((resolve) => {
-					createResolve['resolve'] = resolve
+					createPromise['resolve'] = resolve
 				})
 				await showProposals()
 			})
@@ -665,8 +665,8 @@ Down_Votes: ${p.downvotes}\n
 										await alertThis('Contribution is too low', false)
 									} else {
 										await new Promise(async (resolve, reject) => {
-											contribResolve['resolve'] = resolve
-											contribResolve['reject'] = reject
+											contribPromise['resolve'] = resolve
+											contribPromise['reject'] = reject
 											await makeContribution(
 												amount,
 												selectedProposal.id,
@@ -681,8 +681,8 @@ Down_Votes: ${p.downvotes}\n
 								case 2:
 									console.log('[.] Processing up vote')
 									await new Promise(async (resolve, reject) => {
-										upvoteResolve['resolve'] = resolve
-										upvoteResolve['reject'] = reject
+										upvotePromise['resolve'] = resolve
+										upvotePromise['reject'] = reject
 										await connectAndUpvote(
 											selectedProposal.id,
 											selectedProposal.contract
@@ -695,8 +695,8 @@ Down_Votes: ${p.downvotes}\n
 								case 3:
 									console.log('[.] Processing down vote')
 									await new Promise(async (resolve, reject) => {
-										downvoteResolve['resolve'] = resolve
-										downvoteResolve['reject'] = reject
+										downvotePromise['resolve'] = resolve
+										downvotePromise['reject'] = reject
 										await connectAndDownvote(
 											selectedProposal.id,
 											selectedProposal.contract
