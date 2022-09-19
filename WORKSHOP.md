@@ -41,4 +41,6 @@ With this in mind, lets's answer the questions:
 
 Let's see how your answers compare to our answers:
 
-- This application requires just one participant, the Deployer. He would be responsible for deploying the contract, and when a proposal is being created by a user, that user assumes the role of the Deployer for that proposal, which in itself would be a contract.
+- This application requires just one participant declaration, that is the Deployer. This participant would be responsible for deploying the contract, and when a proposal is being created by a user, that user assumes the role of the Deployer for that proposal, which in itself would be a contract.  
+- As stated on the onset of this workshop, we would be using API calls to implement voluntary interaction with the contract.
+- To notify every user connected to the contract, we would be using Events.
