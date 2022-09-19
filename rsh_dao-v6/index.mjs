@@ -167,7 +167,7 @@ const reevaluate = async ({
 				const xXProposals = proposals.filter((el) => Number(el.id) !== id)
 				proposals = xXProposals
 				await alertThis(
-					'This proposal seems to have missed becoming a bounty, check the Bounty View'
+					'This proposal seems to have missed becoming a bounty, you can now find it on the Bounties List'
 				)
 			} else if (contribs > 0) {
 				const fProposals = proposals.map((el) => {
@@ -190,7 +190,7 @@ const reevaluate = async ({
 				})
 				proposals = remainingProposals
 				await alertThis(
-					'This appears to be a rogue proposal, it has been taken down'
+					'This appears to be a rogue proposal, and has been taken down'
 				)
 			}
 		} else {
