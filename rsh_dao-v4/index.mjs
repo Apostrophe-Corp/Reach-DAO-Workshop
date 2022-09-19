@@ -305,10 +305,7 @@ const showInfoCenter = async () => {
 				await setRole()
 				break
 			case 0:
-				const confirmed = await ask.ask(
-					`[‼] Confirm exit [y/n]`,
-					ask.yesno
-				)
+				const confirmed = await ask.ask(`[‼] Confirm exit [y/n]`, ask.yesno)
 				if (confirmed) process.exit(0)
 				else await showInfoCenter()
 				break
@@ -325,8 +322,8 @@ const showInfoCenter = async () => {
   3. Back to Select Roles
   0. Exit Reach DAO`,
 		(input) => {
-			if (Number(input) == NaN) {
-				throw Error('[‼] Please enter a valid input')
+			if (isNaN(input)) {
+				throw Error('[‼] Please enter a numeric value')
 			} else {
 				return Number(input)
 			}
@@ -349,9 +346,8 @@ const showProposals = async () => {
 	const getProposalInfo = async () => {
 		let [title, link, description] = ['', '', '']
 
-		title = await ask.ask(
-			`[+] Enter the Proposal's Title Max (25)`,
-			(value) => String(value).slice(0, 25)
+		title = await ask.ask(`[+] Enter the Proposal's Title Max (25)`, (value) =>
+			String(value).slice(0, 25)
 		)
 
 		link = await ask.ask(
@@ -379,9 +375,7 @@ const showProposals = async () => {
 						? proposals.length === 1
 							? proposals[0].id + 1
 							: Number(
-									proposals.reduce((a, b) =>
-										a.id > b.id ? a.id : b.id
-									)
+									proposals.reduce((a, b) => (a.id > b.id ? a.id : b.id))
 							  ) + 1
 						: 1,
 				title,
@@ -434,7 +428,7 @@ Down_Votes: ${p.downvotes}\n
 		section < Math.ceil(activeProposals.length / 3)
 			? 'Enter 99 to view the next list'
 			: ''
-  }
+	}
   ${section > 1 ? 'Enter 88 to view the previous list' : ''}
   Or enter 0 to exit`
 				: '[+] Enter any key to exit',
@@ -446,8 +440,7 @@ Down_Votes: ${p.downvotes}\n
 							Number(input) <= proposalsOnDisplay.length &&
 							Number(input) >= 1
 						) {
-							const selectedProposal =
-								proposalsOnDisplay[input - 1]
+							const selectedProposal = proposalsOnDisplay[input - 1]
 							const action = await ask.ask(
 								`[+] What would you like to do?
   1. Contribute
@@ -455,10 +448,8 @@ Down_Votes: ${p.downvotes}\n
   3. Down vote
   0. Cancel`,
 								(x) => {
-									if (Number(x) == NaN) {
-										throw Error(
-											'[‼] Please enter a valid input'
-										)
+									if (isNaN(x)) {
+										throw Error('[‼] Please enter a numeric value')
 									} else {
 										return Number(x)
 									}
@@ -473,9 +464,7 @@ Down_Votes: ${p.downvotes}\n
 											try {
 												x = Number(x)
 											} catch (error) {
-												throw Error(
-													'[‼] Please enter a valid number'
-												)
+												throw Error('[‼] Please enter a numeric value')
 											}
 											return x
 										}
@@ -521,8 +510,10 @@ Down_Votes: ${p.downvotes}\n
 							section < Math.ceil(activeProposals.length / 3)
 						) {
 							await selectActiveProposal(section + 1)
+						} else if (isNaN(input)) {
+							throw Error('[‼] Please enter a numeric value')
 						} else {
-							console.log('[‼] ID not found')
+							console.log('[‼] Invalid response')
 							await sleep(2000)
 							await selectActiveProposal(section)
 						}
@@ -567,23 +558,22 @@ Link: ${p.link ?? 'Link'}\n
 		section < Math.ceil(timeoutProposals.length / 3)
 			? 'Enter 99 to view the next list'
 			: ''
-  }
+	}
   ${section > 1 ? 'Enter 88 to view the previous list' : ''}
   Or enter 0 to exit`
 				: '[+] Enter any key to exit',
 			lenOfProposals
 				? async (input) => {
-						if (input == 0) {
+						if (isNaN(input)) {
+							throw Error('[‼] Please enter a numeric value')
+						} else if (input == 0) {
 							await showProposals()
 						} else if (
 							Number(input) <= proposalsOnDisplay.length &&
 							Number(input) >= 1
 						) {
-							const selectedProposal =
-								proposalsOnDisplay[input - 1]
-							await connectAndClaimRefund(
-								selectedProposal.contract
-							)
+							const selectedProposal = proposalsOnDisplay[input - 1]
+							await connectAndClaimRefund(selectedProposal.contract)
 							await showProposals()
 						} else if (input == 88 && section > 1) {
 							await selectActiveProposal(section - 1)
@@ -593,7 +583,7 @@ Link: ${p.link ?? 'Link'}\n
 						) {
 							await selectActiveProposal(section + 1)
 						} else {
-							console.log('[‼] ID not found')
+							console.log('[‼] Invalid response')
 							await sleep(2000)
 							await selectActiveProposal(section)
 						}
@@ -626,10 +616,7 @@ Link: ${p.link ?? 'Link'}\n
 				await setRole()
 				break
 			case 0:
-				const confirmed = await ask.ask(
-					`[‼] Confirm exit [y/n]`,
-					ask.yesno
-				)
+				const confirmed = await ask.ask(`[‼] Confirm exit [y/n]`, ask.yesno)
 				if (confirmed) process.exit(0)
 				else await showProposals()
 				break
@@ -649,8 +636,8 @@ Link: ${p.link ?? 'Link'}\n
   6. Back to Select Roles
   0. Exit Reach DAO`,
 		(input) => {
-			if (Number(input) == NaN) {
-				throw Error('[‼] Please enter a valid input')
+			if (isNaN(input)) {
+				throw Error('[‼] Please enter a numeric value')
 			} else {
 				return Number(input)
 			}
@@ -700,14 +687,15 @@ Grand_Prize: 99999 ${reach.standardUnit}\n
 		section < Math.ceil(activeBounties.length / 3)
 			? 'Enter 99 to view the next list'
 			: ''
-  }
+	}
   ${section > 1 ? 'Enter 88 to view the previous list' : ''}
   Or enter 0 to exit`
 				: '[+] Enter any key to exit',
 			lenOfBounties
 				? async (input) => {
-						if (input == 0) {
-							await showBounties()
+						if (isNaN(input)) {
+							throw Error('[‼] Please enter a numeric value')
+						} else if (input == 0) {
 						} else if (
 							Number(input) <= bountiesOnDisplay.length &&
 							Number(input) >= 1
@@ -725,7 +713,7 @@ Grand_Prize: 99999 ${reach.standardUnit}\n
 						) {
 							await selectActiveBounty(section + 1)
 						} else {
-							console.log('[‼] ID not found')
+							console.log('[‼] Invalid response')
 							await sleep(2000)
 							await selectActiveBounty(section)
 						}
@@ -752,10 +740,7 @@ Grand_Prize: 99999 ${reach.standardUnit}\n
 				await setRole()
 				break
 			case 0:
-				const confirmed = await ask.ask(
-					`[‼] Confirm exit [y/n]`,
-					ask.yesno
-				)
+				const confirmed = await ask.ask(`[‼] Confirm exit [y/n]`, ask.yesno)
 				if (confirmed) process.exit(0)
 				else await showBounties()
 				break
@@ -773,8 +758,8 @@ Grand_Prize: 99999 ${reach.standardUnit}\n
   4. Back to Select Roles
   0. Exit Reach DAO`,
 		(input) => {
-			if (Number(input) == NaN) {
-				throw Error('[‼] Please enter a valid input')
+			if (isNaN(input)) {
+				throw Error('[‼] Please enter a numeric value')
 			} else {
 				return Number(input)
 			}
@@ -785,5 +770,5 @@ Grand_Prize: 99999 ${reach.standardUnit}\n
 }
 
 await connectAccount()
-
+ask.done()
 process.exit(0)

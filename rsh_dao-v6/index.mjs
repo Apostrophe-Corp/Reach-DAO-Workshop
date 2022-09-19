@@ -511,8 +511,8 @@ const showInfoCenter = async () => {
   3. Back to Select Roles
   0. Exit Reach DAO`,
 		(input) => {
-			if (Number(input) == NaN) {
-				throw Error('[‼] Please enter a valid input')
+			if (isNaN(input)) {
+				throw Error('[‼] Please enter a numeric value')
 			} else {
 				return Number(input)
 			}
@@ -640,8 +640,8 @@ Down_Votes: ${p.downvotes}\n
   3. Down vote
   0. Cancel`,
 								(x) => {
-									if (Number(x) == NaN) {
-										throw Error('[‼] Please enter a valid input')
+									if (isNaN(x)) {
+										throw Error('[‼] Please enter a numeric value')
 									} else {
 										return Number(x)
 									}
@@ -653,25 +653,29 @@ Down_Votes: ${p.downvotes}\n
 									const amount = await ask.ask(
 										`[+] Please enter the amount in ${reach.standardUnit}`,
 										(x) => {
-											if (Number(x) == NaN) {
-												throw Error('[‼] Please enter a valid number')
+											if (isNaN(x)) {
+												throw Error('[‼] Please enter a numeric value')
 											} else {
 												return Number(x)
 											}
 										}
 									)
 									console.log('[.] Processing contribution')
-									await new Promise(async (resolve, reject) => {
-										contribResolve['resolve'] = resolve
-										contribResolve['reject'] = reject
-										await makeContribution(
-											amount,
-											selectedProposal.id,
-											selectedProposal.contract
-										)
-									}).catch(async () => {
-										await reevaluate(selectedProposal)
-									})
+									if (amount == 0) {
+										await alertThis('Contribution is too low', false)
+									} else {
+										await new Promise(async (resolve, reject) => {
+											contribResolve['resolve'] = resolve
+											contribResolve['reject'] = reject
+											await makeContribution(
+												amount,
+												selectedProposal.id,
+												selectedProposal.contract
+											)
+										}).catch(async () => {
+											await reevaluate(selectedProposal)
+										})
+									}
 									await selectActiveProposal(section)
 									break
 								case 2:
@@ -717,7 +721,7 @@ Down_Votes: ${p.downvotes}\n
 						) {
 							await selectActiveProposal(section + 1)
 						} else {
-							console.log('[‼] ID not found')
+							console.log('[‼] Invalid response')
 							await sleep(2000)
 							await selectActiveProposal(section)
 						}
@@ -789,7 +793,7 @@ Link: ${p.link ?? 'Link'}\n
 						) {
 							await selectActiveProposal(section + 1)
 						} else {
-							console.log('[‼] ID not found')
+							console.log('[‼] Invalid response')
 							await sleep(2000)
 							await selectActiveProposal(section)
 						}
@@ -842,8 +846,8 @@ Link: ${p.link ?? 'Link'}\n
   6. Back to Select Roles
   0. Exit Reach DAO`,
 		(input) => {
-			if (Number(input) == NaN) {
-				throw Error('[‼] Please enter a valid input')
+			if (isNaN(input)) {
+				throw Error('[‼] Please enter a numeric value')
 			} else {
 				return Number(input)
 			}
@@ -923,7 +927,7 @@ Grand_Prize: 99999 ${reach.standardUnit}\n
 						) {
 							await selectActiveBounty(section + 1)
 						} else {
-							console.log('[‼] ID not found')
+							console.log('[‼] Invalid response')
 							await sleep(2000)
 							await selectActiveBounty(section)
 						}
@@ -968,8 +972,8 @@ Grand_Prize: 99999 ${reach.standardUnit}\n
   4. Back to Select Roles
   0. Exit Reach DAO`,
 		(input) => {
-			if (Number(input) == NaN) {
-				throw Error('[‼] Please enter a valid input')
+			if (isNaN(input)) {
+				throw Error('[‼] Please enter a numeric value')
 			} else {
 				return Number(input)
 			}
