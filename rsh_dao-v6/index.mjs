@@ -85,8 +85,7 @@ const setRole = async () => {
 		contribResolve,
 		upvoteResolve,
 		downvoteResolve,
-		reevaluationReject,
-	] = [null, {}, [], [], {}, {}, {}, {}, {}]
+	] = [null, {}, [], [], {}, {}, {}, {}]
 	console.clear()
 
 	console.log(`Reach DAO by Team 18`)
