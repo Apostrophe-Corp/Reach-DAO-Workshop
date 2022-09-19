@@ -984,5 +984,5 @@ Grand_Prize: 99999 ${reach.standardUnit}\n
 }
 
 await connectAccount()
-
+ask.done()
 process.exit(0)
