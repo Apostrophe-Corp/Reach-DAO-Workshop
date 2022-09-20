@@ -154,7 +154,7 @@ Now that we've decided what data types to use, we need to determine how the prog
 - What participant interact interface will Deployer use?
 - Taking into account that the Deployer can either deploy the main contract or make a proposal upon a contract creation, how do we notify the backend what we want to do through the interact interface?
 
-Revisit the problem analysis section when completing this section. Whenever a participant starts off with some knowledge, that will be a field in the `interact` object. If they learn something, then it will be a function. If they provide something later, then it will be a result of a function.  
+Revisit the problem analysis section when completing this section.  
 
 You should write down your answers in your Reach file (`index.rsh`) as the participant interact interface for the Deployer.
 
@@ -162,11 +162,11 @@ You should write down your answers in your Reach file (`index.rsh`) as the parti
 
 Let's now compare your answers with ours:
 
-- The `id` will be represented with a `UInt`, as it is a relative time delta signifying a change in block numbers.
-- The `title` will be represented with bytes, with a maximum of 25 characters, `Bytes(25)`
-- The `link` will be represented with bytes, with a maximum of 150 characters, considering the length of most URLS, `Bytes(25)`
-- The `description` will be represented with bytes, with a maximum of 180 characters, for a really short description.
-- The `owner` will be represented with `Address`. In order to maintain anonymity, only the wallet address of the proposer is sufficient (at least for now).
+- The `id` will be represented with a `UInt`.
+- The `title` will be represented with `Bytes(25)` (Bytes with a maximum of 25 characters).
+- The `link` will be represented with `Bytes(25)` (Bytes with a maximum of 150 characters), considering the length of most URLs.
+- The `description` will be represented with `Bytes(180) (Bytes with a maximum of 180 characters), for a really short description.
+- The `owner` will be represented with `Address`. In order to maintain anonymity, using only the wallet address of the proposer as a means of identification is sufficient (at least for now).
 - The `deadline` will be represented with `UInt`, as it is a relative time delta signifying a change in block number.  
 
 Now the Admin would like to deploy the main contract, and a user could create proposal. How do we pass this to the backend?
