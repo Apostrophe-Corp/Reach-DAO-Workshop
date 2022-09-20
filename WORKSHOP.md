@@ -164,8 +164,8 @@ Let's now compare your answers with ours:
 
 - The `id` will be represented with a `UInt`.
 - The `title` will be represented with `Bytes(25)` (Bytes with a maximum of 25 characters).
-- The `link` will be represented with `Bytes(25)` (Bytes with a maximum of 150 characters), considering the length of most URLs.
-- The `description` will be represented with `Bytes(180) (Bytes with a maximum of 180 characters), for a really short description.
+- The `link` will be represented with `Bytes(150)` (Bytes with a maximum of 150 characters), considering the length of most URLs.
+- The `description` will be represented with `Bytes(180)` (Bytes with a maximum of 180 characters), for a really short description.
 - The `owner` will be represented with `Address`. In order to maintain anonymity, using only the wallet address of the proposer as a means of identification is sufficient (at least for now).
 - The `deadline` will be represented with `UInt`, as it is a relative time delta signifying a change in block number.  
 
