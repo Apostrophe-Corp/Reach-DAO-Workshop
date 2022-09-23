@@ -304,8 +304,8 @@ const Proposals = Events({
 })
 ```
 
-- First we have the entire information of a proposal to be communicated between the frontend and backend represented by a `Struct` and not an `Object`. This is because the `Object` type is internal to Reach and can only be automatically consumed by other Reach programs. For a detailed explanation see error code [RW0005](https://docs.reach.sh/rsh/errors/#RW0005) in the Reach Docs.  
-- Next we have the response returned on a user's attempt to claim a refund represented by a Struct too.
+- First, we have the entire information of a proposal to be communicated between the frontend and backend represented by a `Struct` and not an `Object`. This is because the `Object` type is internal to Reach and can only be automatically consumed by other Reach programs. For a detailed explanation see error code [RW0005](https://docs.reach.sh/rsh/errors/#RW0005) in the Reach Docs.  
+- Next, we have the response returned on a user's attempt to claim a refund represented by a Struct too.
 - Then we have our API declarations. Those handled by the proposal contract are `upvote`, `downvote`, `contribute`, and `claimRefund`, the rest are handled by the main contract to reflect the action taken on a proposal contract, with the exception of `checkTime`. This API call is a last resort to carry out frontend reevaluation of a proposal that may have failed to be updated with the outcome of its evaluation.
 - Lastly, we have the Events declarations. The `that` and `log` Events, are Events that can invoke different actions on different scenarios.
 
@@ -589,3 +589,7 @@ forall(UInt, (upVotes) =>
     )
 )
 ```
+
+- First, we created two enums `NOT_PASSED` and `PASSED` which are distinct numbers, and then a validator that checks if its argument is indeed a member of the enum set. 
+- Next, we have the declaration of our `state` variable used in our Events declaration a couple sections back.
+- Then, we have a utility function that handles evaluation of the outcome of votes.
