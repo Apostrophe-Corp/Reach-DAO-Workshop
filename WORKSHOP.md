@@ -1886,4 +1886,4 @@ This workshop uses a "top-down" perspective on Reach application design, where y
 
 If you found this workshop rewarding, please let us know on the Discord community!  
 
-Stay tuned for a tutrial version of this workshop! Then we find a more efficient way to handle interaction between the main contract and a proposal contract.  
+Stay tuned for a tutorial version of this workshop! Then we find a more efficient way to handle interaction between the main contract and a proposal contract.  
