@@ -595,3 +595,5 @@ forall(UInt, (upVotes) =>
 - Then, we have a utility function that handles evaluation of the outcome of votes.
 - Afterwards, we make three assertions that given a set amount of votes for up votes and down votes, that the expected outcome is derived.
 - Lastly, we validate that given any value for up votes and down votes a valid outcome must be met.
+
+At this point, with just a little addition to our program, we will be ready to run it.  
