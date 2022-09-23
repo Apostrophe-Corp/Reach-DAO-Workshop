@@ -266,6 +266,10 @@ Let's review the instances an Event would need to be fired and discern what kind
 
 Were you able to come up with the declarations for the Events and API calls? Here are ours:
 
+[`~/reach/rsh_dao-ws/index.rsh`](./rsh_dao-v6/index.rsh)
+
+---
+
 ```javascript
 const objectRep = Struct([
     ['id', UInt],
@@ -345,14 +349,19 @@ Now here is our outline:
 // 1. The origin Deployer publishes information needed to define the purpose of deployment
 // 2. The contract checks the purpose of deployment and assumes the appropriate role
 // 3. Depending on the purpose of deployment:
-//    I. In the case of a proposal contract, the Deployer publishes the complete details of the proposal and the contract notifies the creation of a new proposal
+//    I. In the case of a proposal contract, the Deployer publishes the complete details of
+//       the proposal and the contract notifies the creation of a new proposal
 //       a. The deadline for the proposal is set
-//       b. Users are allowed to express their interest in proposals by either up voting or down voting and occasionally contributing to these proposals, then everyone else sees the total number of votes a proposal has and the amount it has raised
+//       b. Users are allowed to express their interest in proposals by either up voting or
+//          down voting and occasionally contributing to these proposals, then everyone else sees
+//          the total number of votes a proposal has and the amount it has raised
 //       c. For each proposal, after its deadline is reached, depending on the votes:
 //          - It either becomes a bounty and the balance of the contract sent to the proposer or 
-//          - If its contract balance wasn't empty at the time of the deadline, then its open to process refunds, then when its balance hits zero it closes and the proposal taken down, else
+//          - If its contract balance wasn't empty at the time of the deadline, then its open to 
+//            process refunds, then when its balance hits zero it closes and the proposal taken down, else
 //          - It is taken down immediately
-//    II. For the main contract, it waits indefinitely for any data sent from the frontend from an Event fired by a proposal contract to notify all connected of the change
+//    II. For the main contract, it waits indefinitely for any data sent from the frontend
+//        from an Event fired by a proposal contract to notify all connected of the change
 ```
 
 Its time to convert this outline to a real program.
@@ -360,6 +369,10 @@ Its time to convert this outline to a real program.
 **Write down the communication pattern for this program as code.**
 
 The body of your code should be similar to this:
+
+[`~/reach/rsh_dao-ws/index.rsh`](./rsh_dao-v6/index.rsh)
+
+---
 
 ```javascript
 // 1. The origin Deployer publishes information needed to define the purpose of deployment
@@ -369,7 +382,8 @@ Deployer.publish(description, isProposal)
 if (isProposal) {
       commit()
       // 3. Depending on the purpose of deployment:
-      //    I. In the case of a proposal contract, the Deployer publishes the complete details of the proposal and the contract notifies the creation of a new proposal
+      //    I. In the case of a proposal contract, the Deployer publishes the complete details of 
+      //       the proposal and the contract notifies the creation of a new proposal
       Deployer.publish(title, link, owner, id, deadline)
       Proposals.created(
       id,
@@ -386,7 +400,9 @@ if (isProposal) {
       const amtContributed = new Map(Address, UInt)
       const contributorsSet = new Set()
 
-      // 3. I. b. Users are allowed to express their interest in proposals by either up voting or down voting and occasionally contributing to these proposals, then everyone else sees the total number of votes a proposal has and the amount it has raised
+      // 3. I. b. Users are allowed to express their interest in proposals by either up voting or
+      //          down voting and occasionally contributing to these proposals, then everyone else sees
+      //          the total number of votes a proposal has and the amount it has raised
       const [upvote, downvote, amtTotal] = parallelReduce([0, 0, balance()])
           .invariant(balance() == amtTotal)
           .while(keepGoing())
@@ -431,7 +447,8 @@ if (isProposal) {
                   transfer(balance()).to(owner)
               } else {
                   if (balance() > 0) {
-                    // - If its contract balance wasn't empty at the time of the deadline, then its open to process refunds, then when its balance hits zero it closes and the proposal taken down, else
+                    // - If its contract balance wasn't empty at the time of the deadline, then its open to
+                    //   process refunds, then when its balance hits zero it closes and the proposal taken down, else
                       const fromMapAdd = (m) =>
                           fromMaybe(
                             m,
@@ -485,7 +502,8 @@ if (isProposal) {
       transfer(balance()).to(Deployer)
  } else {
     // 3. Depending on the purpose of deployment:
-    //    II. For the main contract, it waits indefinitely for any data sent from the frontend from an Event fired by a proposal contract to notify all connected of the change
+    //    II. For the main contract, it waits indefinitely for any data sent from the frontend  
+    //        from an Event fired by a proposal contract to notify all connected of the change
     const keepGoing = parallelReduce(true)
         .invariant(balance() == 0)
         .while(keepGoing)
@@ -552,7 +570,7 @@ We use multiple `parallelReduce` cases to allow users interact with the contract
 
 When we are programming, it is necessary we add assertions to our programs to ensure the theory of our program's behavior remains discernable. As we develop further on our application the depth of complexity increases and eventually could engulf the theory we hold in our minds as regards the behavior of the program from its previous events and things that hold true at any point of the program. In addition, when another programmer such as our future self read through our code, it is very difficult to understand this theory for ourselves. Assertions are ways of encoding this theory directly into the text of the program in a way that will checked by Reach and available to all future readers and editors of the code.  
 
-Look at your application. What are the assumptions you have about the values in the program? 
+Look at your application. What are the assumptions you have about the values in the program?
 
 **Write down the properties you know are true about the various values in the program.**
 
@@ -563,6 +581,10 @@ Now that we know what the properties are, we need to encode them into our progra
 **Insert assertions into the program corresponding to the facts that should be true.**
 
 Here's what we did:
+
+[`~/reach/rsh_dao-ws/index.rsh`](./rsh_dao-v6/index.rsh)
+
+---
 
 ```javascript
 const [isOutcome, NOT_PASSED, PASSED] = makeEnum(2)
@@ -590,7 +612,7 @@ forall(UInt, (upVotes) =>
 )
 ```
 
-- First, we created two enums `NOT_PASSED` and `PASSED` which are distinct numbers, and then a validator that checks if its argument is indeed a member of the enum set. 
+- First, we created two enums `NOT_PASSED` and `PASSED` which are distinct numbers, and then a validator that checks if its argument is indeed a member of the enum set.  
 - Next, we have the declaration of our `state` variable used in our Events declaration a couple sections back.
 - Then, we have a utility function that handles evaluation of the outcome of votes.
 - Afterwards, we make three assertions that given a set amount of votes for up votes and down votes, that the expected outcome is derived.
