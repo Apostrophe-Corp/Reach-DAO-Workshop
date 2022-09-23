@@ -133,7 +133,7 @@ Lets see if our answers match:
 
 - **ID**: A proposal would need a means of quick identification in a pool of other proposals.
 - **Title**: A proposal must have a definite name. This will be referred to as its title.
-- **Link**: Surely all the information regarding the proposal cannot just be stored in our contract as bytes, no, we would run out of storage supported for a contract. Therefore, we would have a link to an external source where a more detailed explanation would be found.
+- **Link**: Surely all the information regarding the proposal cannot just be stored in our contract as bytes, no, we would exceeded amount of bytes to publish to consensus. Therefore, we would have a link to an external source where a more detailed explanation would be found.
 - **Description**: Okay we can't store overly large amounts of bytes in our contract, but we can have a brief one or two sentence description of the proposal.
 - **Owner**: Books have authors and every invention has an inventor, nothings comes by chance, the same applies to proposals.
 - **Deadline**: This is a predefined period set by the origin Deployer for all proposals to handle interaction.  
@@ -199,7 +199,7 @@ const Deployer = Participant('Deployer', {
 })
 ```
 
-We've set the Deployer's interact object to have only one property `getProposal`, which holds all the values needed for a proposal and the boolean `isProposal` that dictates if the main contract gets deployed of a proposal contract.  
+We've set the Deployer's interact object to have only one property `getProposal`, which holds all the values needed for a proposal and the boolean `isProposal` that dictates if the contract assumes the role of the main contract or a proposal contract.  
 > At this point, you can modify your JavaScript file (`index.mjs`) to mirror your backend, although you may want to use placeholders for the actual values, except when you actually create a proposal. Its good practice to have these two files open side-by-side in the early stages of development, for simultaneous updates as you're deciding the participant interact interface.
 
 The Deployer's interact interface is set, and we can already imagine how the flow of our DApp would be, and the pattern of communication among those using the DApp. In order to implement this flow, we must find the answer these questions:
@@ -219,7 +219,7 @@ APIs are **defined functionality** that can be voluntarily called upon from the 
 > **What is a Parallel Reduce?**  
 > Like while loops, it is another way to mutate values in the contract, but unlike the while loop, not with repetitive action but through user interaction with the contract, while a condition remains true, and only if a value—usually the contract's balance—remains invariable for the duration of the parallel reduce no matter what kind of operation the user takes.  
 
-**Therefore, users interact with the contracts of proposals using API calls then the outcome of these interactions, and the internal state of proposals are made known to other users using Events.**
+**Therefore, users interact with the contracts of proposals using API calls, then, the outcome of these interactions, and the internal state of proposals are made known to other users using Events.**
 
 Like the Deployer's interact interface, API calls and Events need to be declared first before their actual use in the business logic of the contract.  
 
@@ -229,16 +229,16 @@ And so, to do that, we need to map out what scenarios would require their use, t
 - **User votes on a proposal**: When this takes place, the contract whose proposal got voted upon, needs to be notified of that action to update its internal state with regards to the evaluation after the deadline set for interactivity. Afterwards, the main contract get notified of the action taken in order for other users to be notified too.
 - **User contributes to a proposal**: This calls for the user to pay to the contract and the total amount of contributions updated in the frontend. All other users are entitled to know of this change too.
 
-What other  in a proposal's contract would require an event to be fired?
+What other scenario in a proposal's contract would require an event to be fired?
 
 - **When a proposal reaches it deadline**: At this point, an evaluation is made, then the main contract must be notified that a proposal just timed out and if it either passed on time out or failed.
 - **A failed proposal's refundable balance reaches zero**: For failed proposals with funds already contributed to, must refund all contributed funds before being taken down from the platform, hence users must be able to voluntarily claim a refund. If successful, the user gets notified, if not he sees this outcome too. But immediately a failed proposal's contract's balance hits zero, the main contract must be notified to take that proposal down for everyone, as it is no longer relevant.
 
 Keeping in mind that Events are just data sent to the frontend for evaluation, how do we represent the actions we want to take to reflect these updated states using just data? First we must know what to send.
 
-Let's review each instance an Event would need to be fired and discern what kind of data would be appropriate to send out for evaluation.
+Let's review the instances an Event would need to be fired and discern what kind of data would be appropriate to send out for evaluation.
 
-- User creates a proposal: This calls for a complete representation of the proposal along with the contract information and the time of creation, to be sent to the main contract for other users to get their views updated that piece of information. Hence we would be sending the following details of a proposal:
+- User creates a proposal: This calls for a complete representation of the proposal along with the contract information and the time of creation, to be sent to the main contract for other users to get their views updated with that piece of information. Hence we would be sending the following details of a proposal:
   - ID
   - Title
   - Link
@@ -246,20 +246,20 @@ Let's review each instance an Event would need to be fired and discern what kind
   - Owner
   - Contract information
   - Block created
-- User votes on a proposal: Regardless of the kind of vote passed by the user the proposal's contract must inform the main contract of the following details of the proposal:
+- User votes on a proposal: Regardless of the kind of vote passed by the user, the proposal's contract must inform the main contract of the following details of the proposal:
   - ID
   - Total number of votes (up votes/down votes)  
 - User contributes to a proposal: The main contract must be informed of the following details when such an action takes place:
   - ID
   - Total amount contributed
-- When a proposal reaches it deadline: In order for the main contract to enact an evaluation it would be needing details of the proposal:
+- When a proposal reaches it deadline: In order for the main contract to enact an evaluation it would be needing the following details of the proposal:
   - ID
   - Outcome of evaluation (passed/failed)
 - A failed proposal's refundable balance reaches zero: The main contract would need only the id of proposal:
   - ID
 
 > You may have noticed that as opposed to our understanding of Events sending data to the frontend, we speak of the proposal contract sending information to the main contract instead of the frontend. This is because of the the nature of Events and how they are handled in the frontend.  
-> Events declared in the backend are bound to functions in the frontend that get called every time the Event bound to it gets fired in the contract. Combining this with API calls, we can make a proposal contract fire up an Event that makes the user's frontend interact with the main contract to fire up an Event too, this time to everyone.  
+> Events declared in the backend are bound to functions in the frontend that get called every time the Event bound to it gets fired in the contract. Combining this with API calls, we can make a proposal contract fire up an Event that makes the user's frontend interact with the main contract to fire up an Event too, this time to everyone. Just like a chain reaction.  
 > Another fine thing about Events, is that, since they are bound to functions in the frontend, the data sent to the frontend through an Event, act as arguments for the function's execution. This gives us room to be flexible, so although we could declare several different Events for different actions, for a group of related actions, we could use just one Event declaration and in the frontend switch between the several possible returned data.  
 
 **Now try to figure out the right declarations for both API calls and Events, write your findings in a comment.**
@@ -307,7 +307,7 @@ const Proposals = Events({
 - First, we have the entire information of a proposal to be communicated between the frontend and backend represented by a `Struct` and not an `Object`. This is because the `Object` type is internal to Reach and can only be automatically consumed by other Reach programs. For a detailed explanation see error code [RW0005](https://docs.reach.sh/rsh/errors/#RW0005) in the Reach Docs.  
 - Next, we have the response returned on a user's attempt to claim a refund represented by a Struct too.
 - Then we have our API declarations. Those handled by the proposal contract are `upvote`, `downvote`, `contribute`, and `claimRefund`, the rest are handled by the main contract to reflect the action taken on a proposal contract, with the exception of `checkTime`. This API call is a last resort to carry out frontend reevaluation of a proposal that may have failed to be updated with the outcome of its evaluation.
-- Lastly, we have the Events declarations. The `that` and `log` Events, are Events that can invoke different actions on different scenarios.
+- Lastly, we have the Events declarations. The `that` and `log` Events, are Events that can invoke different actions on different scenarios, while `create` and `created`, invoke a single action. The `log` and `created` events are fired by the proposal contract, while the `that` and `create` are fired by the main contract.
 
 You've probably noticed that the variable `state` is undefined. We'll handle that in the a section to come.
 
@@ -322,7 +322,7 @@ You've probably noticed that the variable `state` is undefined. We'll handle tha
 
 ## Communication Construction
 
-A fundamental aspect of a decentralized application is the pattern or structure of communication between all those connected to the contract. We should write down this pattern as comments in our program to act as a guide as start work on implementation. For example, for the [tutorial](https://docs.reach.sh/tut/rps/#tut) version of _Rock, Paper, Scissors!_, we could write the following pattern:
+A fundamental aspect of a decentralized application is the pattern or structure of communication between all those connected to the contract. We should write down this pattern as comments in our program to act as a guide as we start work on implementation. For example, for the [tutorial](https://docs.reach.sh/tut/rps/#tut) version of _Rock, Paper, Scissors!_, we could write the following pattern:
 
 ```javascript
 // Alice publishes the wager and pays it
@@ -348,7 +348,7 @@ Now here is our outline:
 //    I. In the case of a proposal contract, the Deployer publishes the complete details of the proposal and the contract notifies the creation of a new proposal
 //       a. The deadline for the proposal is set
 //       b. Users are allowed to express their interest in proposals by either up voting or down voting and occasionally contributing to these proposals, then everyone else sees the total number of votes a proposal has and the amount it has raised
-//       c. For each proposal, after it deadline is reached, depending on the votes:
+//       c. For each proposal, after its deadline is reached, depending on the votes:
 //          - It either becomes a bounty and the balance of the contract sent to the proposer or 
 //          - If its contract balance wasn't empty at the time of the deadline, then its open to process refunds, then when its balance hits zero it closes and the proposal taken down, else
 //          - It is taken down immediately
@@ -359,7 +359,7 @@ Its time to convert this outline to a real program.
 
 **Write down the communication pattern for this program as code.**
 
-The body should be similar to this:
+The body of your code should be similar to this:
 
 ```javascript
 // 1. The origin Deployer publishes information needed to define the purpose of deployment
@@ -424,7 +424,7 @@ if (isProposal) {
           })
           .timeout(timeRemaining(), () => {
               Deployer.publish()
-              // 3. 1. c. For each proposal, after it deadline is reached, depending on the votes:              
+              // 3. 1. c. For each proposal, after its deadline is reached, depending on the votes:              
               if (checkStatus(upvote, downvote) == PASSED) {
                   // - It either becomes a bounty and the balance of the contract sent to the proposer or 
                   Proposals.log(state.pad('passed'), id)
@@ -546,11 +546,11 @@ if (isProposal) {
  commit()
 ```
 
-We use multiple `parallelReduce` cases to allow users interact with the contracts and update their internal states. We maintained the invariant that for the proposal contract, while it is open to interactions, its balance remains equal to the total amount to funds contributed to contract, and after its timeout if it fails with funds that its balance is equal to amount of funds as at its timing out, which get decremented by each successful processed refund. For the main contract, however, we maintained the invariant that the balance is always zero. You've probably noticed that the variables `PASSED` is undefined. We'll handle that next.
+We use multiple `parallelReduce` cases to allow users interact with the contracts and update their internal states. We maintained the invariant that for the proposal contract, while it is open to interactions, its balance remains equal to the total amount to funds contributed to contract, and after its timeout if it fails with funds that its balance is equal to amount of funds as at its timing out, which get decremented by each successful processed refund. For the main contract, however, we maintained the invariant that the balance is always zero. You've probably noticed that the variable `PASSED` is undefined. We'll handle that next.
 
 ## Assertion Insertion
 
-When we are programming, it is necessary we add assertions to our programs to ensure the theory of our program's behavior remains discernable. As we develop further on our application the depth of complexity increases and eventually could engulf the theory we hold in our minds as regards the behavior of the program from previous events and things that hold true at any point of the program. In addition, when another programmer such as our future self read through our code, it is very difficult to understand this theory for ourselves. Assertions are ways of encoding this theory directly into the text of the program in a way that will checked by Reach and available to all future readers and editors of the code.  
+When we are programming, it is necessary we add assertions to our programs to ensure the theory of our program's behavior remains discernable. As we develop further on our application the depth of complexity increases and eventually could engulf the theory we hold in our minds as regards the behavior of the program from its previous events and things that hold true at any point of the program. In addition, when another programmer such as our future self read through our code, it is very difficult to understand this theory for ourselves. Assertions are ways of encoding this theory directly into the text of the program in a way that will checked by Reach and available to all future readers and editors of the code.  
 
 Look at your application. What are the assumptions you have about the values in the program? 
 
@@ -558,7 +558,7 @@ Look at your application. What are the assumptions you have about the values in 
 
 Now after all that, we can tell you that not much is required to assert in our program except for the fact that no matter the amount of up votes or down votes a proposal has that an outcome must always be discernable.
 
-Now that we know what the properties are, we need to encode them into our program via calls to Reach functions like `assert`, and `forall` and another concept called Enumerations. Lets do that now.
+Now that we know what the properties are, we need to encode them into our program via calls to Reach functions such as `assert`, and `forall` and another concept called Enumerations. Lets do that now.
 
 **Insert assertions into the program corresponding to the facts that should be true.**
 
@@ -594,6 +594,6 @@ forall(UInt, (upVotes) =>
 - Next, we have the declaration of our `state` variable used in our Events declaration a couple sections back.
 - Then, we have a utility function that handles evaluation of the outcome of votes.
 - Afterwards, we make three assertions that given a set amount of votes for up votes and down votes, that the expected outcome is derived.
-- Lastly, we validate that given any value for up votes and down votes a valid outcome must be met.
+- Lastly, we validate that given any value for up votes and down votes a valid outcome must be derived.
 
 At this point, with just a little addition to our program, we will be ready to run it.  
