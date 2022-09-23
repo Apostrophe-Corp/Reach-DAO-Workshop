@@ -593,3 +593,5 @@ forall(UInt, (upVotes) =>
 - First, we created two enums `NOT_PASSED` and `PASSED` which are distinct numbers, and then a validator that checks if its argument is indeed a member of the enum set. 
 - Next, we have the declaration of our `state` variable used in our Events declaration a couple sections back.
 - Then, we have a utility function that handles evaluation of the outcome of votes.
+- Afterwards, we make three assertions that given a set amount of votes for up votes and down votes, that the expected outcome is derived.
+- Lastly, we validate that given any value for up votes and down votes a valid outcome must be met.
