@@ -1,4 +1,4 @@
-# Reach DAO by Team 18
+# Reach DAO
 
 In this workshop, we'll design a platform where users can create proposals and have other users in the platform decide the outcome of the proposal created by either up voting or down voting the proposal, and optionally sponsoring the proposal by contributing to it with the condition that the proposer only gets the total funds if the amount of up votes surpasses that of the down votes. In this scenario encountering proposals that fail to pass this condition are inevitable, so we would give users the means to claim back the portions they contributed to a failed proposal until all funds have been retrieved. On the other hand, for passed proposals, we would have them become bounties, open to be claimed by anyone willing to fulfill the proposed task.  
 
@@ -16,7 +16,7 @@ And that you have a copy of Reach installed in `~/reach/rsh_dao-ws`, so that you
 > ./reach version
 ```
 
-And it will run Reach. You should by initializing your Reach program with two files, the contract `index.rsh` file, and the test suite `index.mjs`  file:
+And it will run Reach. You should start by initializing your Reach program with two files, the contract `index.rsh` file, and the test suite `index.mjs`  file:
 
 ```shell
 > touch index.rsh
@@ -106,7 +106,7 @@ With this in mind, lets's answer the questions:
 - How do we implement voluntary interaction?
 - How do we ensure every user is aware of the current state of things?
 - How do we ensure that when a contract gets created for a new proposal, that it can be attached to by anyone to interact with?  
-- How do we enforce that when a proposal's window for interactions closes that it gets evaluated and either is taken down or moved to the next stage of its life cycle?
+- How do we enforce that when a proposal's window for interactions closes that it gets evaluated and is either taken down or moved to the next stage of its life cycle?
 
 **Write down the problem analysis of this program as a comment.**
 
@@ -863,7 +863,7 @@ At this point, when we run:
 > ./reach compile
 ```
 
-We'll get a happy message that all our theorems are true. Great job! But the fact remains we are yet to run our program!  
+We'll get a happy message that all our theorems are true. Great job! But the fact remains that we are yet to run our program!  
 
 ## Deployment Decisions
 
@@ -871,7 +871,7 @@ At this point, we need to decide how we're going to deploy this program and real
 
 **Decide how you will deploy and use this application.**  
 
-Next, we'll settle for an simple yet fully interactive testing program for now to show the application, and leave you to decide a befitting GUI implementation. Here's the JavaScript frontend we wrote:
+Next, we'll settle for a simple yet fully interactive testing program for now to show the application, and leave you to decide a befitting GUI implementation. Here's the JavaScript frontend we wrote:
 
 [`~/reach/rsh_dao-ws/index.mjs`](./rsh_dao-v6/index.mjs)
 
@@ -1884,6 +1884,6 @@ You implemented a Reach program totally on your own, with only a little guidance
 
 This workshop uses a "top-down" perspective on Reach application design, where you derive the program from the requirements and slowly fill out the shell, while knowing that each step was correct before moving on. There's no right way to program and in our own Reach development, we use a combination of ingenuity and improvisation.  
 
-If you found this workshop rewarding, please let us know on the Discord community!  
+If you found this workshop rewarding, please let us know on the [Discord](bit.ly/3BnPyKd) community!  
 
 Stay tuned for a tutorial version of this workshop! Then we find a more efficient way to handle interaction between the main contract and a proposal contract.  
