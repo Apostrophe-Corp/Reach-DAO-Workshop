@@ -4,12 +4,6 @@ In this workshop, we'll create a DApp where users can create proposals and have 
 
 > This workshop assumes that you have previously completed the Rock, Papers, Scissors, and or Wisdom for Sale tutorial(s) and have a good understanding of interactive test deployment  
 
-Please note the following prefixes used in the console messages and their meaning:
-
-- [.] : This denotes a process.
-- [+] : This denotes a message.
-- [!!] : This denotes an error or an important/ sensitive message. 
-
 We assume that you'll go through this workshop in a directory named `~/reach/rsh_dao-ws`:
 
 ```shell
@@ -85,6 +79,12 @@ console.log('[.] Exiting Reach DAO by Team 18')
 process.exit(0)
 ```
 
+> Please note the following prefixes used in the console messages and their meaning  
+>
+> - [.] : This denotes a process.
+> - [+] : This denotes a message.
+> - [‼] : This denotes an error or an important/ sensitive message.  
+
 Ensure the following commands run perfectly, and you are all set to continue.
 
 ```shell
@@ -138,7 +138,7 @@ Let's see if our answers match:
 
 - **ID**: A proposal would require a unique identifier, to distinguish it from others in a pool of proposals.
 - **Title**: A proposal must have a definite name. This will be referred to as its title.
-- **Link**: Surely all the information regarding the proposal cannot just be stored in our contract as bytes, no, we would exceed the number of bytes that can be published to consensus. Therefore, we would have a link to an external source where a more detailed explanation would be found such as GitHub Readme.md or a google doc.
+- **Link**: Surely all the information regarding the proposal cannot just be stored in our contract as bytes, no, we would exceed the number of bytes that can be published to consensus. Therefore, we would have a link to an external source where a more detailed explanation would be found such as GitHub Readme.md or a Google Doc.
 - **Description**: Okay we can't store overly large amounts of bytes in our contract, but we can have a brief one-sentence or two-sentence description of the proposal. This would enable users to quickly identify proposals they may be interested in finding more information about vis the proposal link.
 - **Owner**: Books have authors and every invention has an inventor, nothing comes by chance, and the same applies to proposals.
 - **Deadline**: This is a predefined period set by the origin/ Admin Deployer for all proposals to handle interactions.  
@@ -217,7 +217,7 @@ The Deployer's interact interface is set, and we can already imagine how the flo
 
 Earlier in the Problem Analysis section, we mentioned using API calls and Events to achieve this. But what are these concepts?
 
-Events are **values** or **data** that a contract sends to all attached to the contract at any point in the contract's life cycle. They are often used to inform all users of different events that occur over the contract's life cycle. 
+Events are **values** or **data** that a contract sends to all attached to the contract at any point in the contract's life cycle. They are often used to inform all users of different events that occur over the contract's life cycle.
 
 APIs are **defined functionality** that can be voluntarily called upon from the frontend by anyone attached to a contract. In this workshop, we would define these API calls in a **Parallel Reduce**.
 
