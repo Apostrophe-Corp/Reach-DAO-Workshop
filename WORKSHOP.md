@@ -1890,6 +1890,6 @@ You implemented a Reach program totally on your own, with only a little guidance
 
 This workshop uses a "top-down" perspective on Reach application design, where you derive the program from the requirements and slowly fill out the shell, while knowing that each step was correct before moving on. There's no right way to program and in our own Reach development, we use a combination of ingenuity and improvisation.  
 
-If you found this workshop rewarding, please let us know on the [Discord](bit.ly/3BnPyKd) community!  
+If you found this workshop rewarding, please let us know on the [Discord](https://bit.ly/3BnPyKd) community!  
 
 Stay tuned for a tutorial version of this workshop! Then we'll cover a more efficient way to handle the interactions between the main contract and a proposal contract.  
