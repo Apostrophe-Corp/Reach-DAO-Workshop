@@ -119,8 +119,8 @@ With this in mind, let's answer the following questions:
 Let's see if we arrived at the same conclusions:
 
 - This program requires just one participant declaration, that is the Deployer. This participant would be responsible for deploying the contract, and when a proposal is being created by a user, that user assumes the role of the Deployer for that proposal, which in itself would be a contract.  
-- To implement voluntary interaction with the contract, **API** calls to the contract must be set up.
-- To notify every user connected to the contract, **Events** must be used.
+- To implement voluntary interaction with the contract, [**API**](https://docs.reach.sh/rsh/appinit/#ref-programs-appinit-api) calls to the contract must be set up.
+- To notify every user connected to the contract, [**Events**](https://docs.reach.sh/rsh/appinit/#ref-programs-appinit-events) must be used.
 - The information of the contract for a proposal must be provided along with the details for the proposal, that way it is accessible upon a request to interact with one.
 - Using deadlines, proposals can be timed to determine when (in consensus time, measured in blocks) its window for interactions is closed.
 
@@ -167,12 +167,12 @@ You should write down your answers in your Reach file (`index.rsh`) as the parti
 
 Let's now compare your answers with ours:
 
-- The `id` will be represented by a `UInt`.
-- The `title` will be represented by `Bytes(25)` (Bytes with a maximum of 25 characters).
-- The `link` will be represented by `Bytes(150)` (Bytes with a maximum of 150 characters), considering the length of most URLs.
-- The `description` will be represented by `Bytes(180)` (Bytes with a maximum of 180 characters), for a really short description.
-- The `owner` will be represented by an `Address`. In order to maintain anonymity, using only the wallet address of the proposer as a means of identification is sufficient.
-- The `deadline` will be represented by a `UInt`, as it is a relative time delta signifying a change in block number.  
+- The `id` will be represented by a [`UInt`](https://docs.reach.sh/rsh/compute/#rsh_UInt).
+- The `title` will be represented by [`Bytes(25)`](https://docs.reach.sh/rsh/compute/#rsh_Bytes) (Bytes with a maximum of 25 characters).
+- The `link` will be represented by [`Bytes(150)`](https://docs.reach.sh/rsh/compute/#rsh_Bytes) (Bytes with a maximum of 150 characters), considering the length of most URLs.
+- The `description` will be represented by [`Bytes(180)`](https://docs.reach.sh/rsh/compute/#rsh_Bytes) (Bytes with a maximum of 180 characters), for a really short description.
+- The `owner` will be represented by an [`Address`](https://docs.reach.sh/rsh/compute/#rsh_Address). In order to maintain anonymity, using only the wallet address of the proposer as a means of identification is sufficient.
+- The `deadline` will be represented by a [`UInt`](https://docs.reach.sh/rsh/compute/#rsh_UInt), as it is a relative time delta signifying a change in block number.  
 
 Now the Admin would like to deploy the main contract, and a user could create a proposal. How do we pass this to the backend?
 
@@ -182,7 +182,7 @@ We'll now introduce another proposal property to the Deployer interface:
 
 Were you able to guess what type `isProposal` will be?
 
-- It will be represented by a `Bool`.
+- It will be represented by a [`Bool`](https://docs.reach.sh/rsh/compute/#rsh_Bool).
 
 Our participant interact interface, looks like this so far:
 
@@ -215,14 +215,14 @@ The Deployer's interact interface is set, and we can already imagine how the flo
 - How are they informed of the outcome of the proposal after a timeout?
 - How do they claim refunds?
 
-Earlier in the Problem Analysis section, we mentioned using API calls and Events to achieve this. But what are these concepts?
+Earlier in the [**Problem Analysis**](#problem-analysis) section, we mentioned using API calls and Events to achieve this. But what are these concepts?
 
 Events are **values** or **data** that a contract sends to all attached to the contract at any point in the contract's life cycle. They are often used to inform all users of different events that occur over the contract's life cycle.
 
-APIs are **defined functionality** that can be voluntarily called upon from the frontend by anyone attached to a contract. In this workshop, we would define these API calls in a **Parallel Reduce**.
+APIs are **defined functionality** that can be voluntarily called upon from the frontend by anyone attached to a contract. In this workshop, we would define these API calls in a [**Parallel Reduce**](https://docs.reach.sh/rsh/consensus/#parallelreduce).
 
 > **What is a Parallel Reduce?**  
-> Like while loops, it is another way to mutate values in a contract, but unlike the while loop, not with repetitive action but through user interaction with the contract, while a condition remains true, and only if a value—usually the contract's balance—remains invariable for the duration of the parallel reduce no matter what kind of operation the user takes.  
+> Like [while](https://docs.reach.sh/rsh/consensus/#while) loops, it is another way to mutate values in a contract, but unlike the while loop, not with repetitive action but through user interaction with the contract, while a condition, referred to as an [invariant](https://docs.reach.sh/guide/loop-invs/#guide-loop-invs), remains true, and only if a value—usually the contract's balance—remains invariable for the duration of the parallel reduce no matter what kind of operation the user takes.  
 
 **Therefore, users interact with the contracts of proposals using API calls, then, the outcome of these interactions and the internal state of proposals are made known to other users using Events.**
 
@@ -313,8 +313,8 @@ const Proposals = Events({
 })
 ```
 
-- First, we have the entire information of a proposal to be communicated between the frontend and backend represented by a `Struct` and not an `Object`. This is because the `Object` type is internal to Reach and can only be automatically consumed by other Reach programs. For a detailed explanation see error code [RW0005](https://docs.reach.sh/rsh/errors/#RW0005) in the Reach Docs.  
-- Next, we have the response returned on a user's attempt to claim a refund represented by a Struct too.
+- First, we have the entire information of a proposal to be communicated between the frontend and backend represented by a [`Struct`](https://docs.reach.sh/rsh/compute/#ref-programs-structs) and not an [`Object`](https://docs.reach.sh/rsh/compute/#ref-programs-objects). This is because the `Object` type is internal to Reach and can only be automatically consumed by other Reach programs. For a detailed explanation see error code [RW0005](https://docs.reach.sh/rsh/errors/#RW0005) in the Reach Docs.  
+- Next, we have the response returned on a user's attempt to claim a refund represented by a `Struct` too.
 - Then we have our API declarations. Those handled by the proposal contract are `upvote`, `downvote`, `contribute`, and `claimRefund`, the rest are handled by the main contract to reflect the action taken on a proposal contract, with the exception of `checkTime`. This API call is a last resort to carry out frontend re-evaluation of a proposal that may have failed to be updated with the outcome of its evaluation.
 - Lastly, we have the Events declarations. The `that` and `log` Events, are Events that can invoke different actions in different scenarios, while `create` and `created`, invoke a single action. The `log` and `created` events are fired by the proposal contract, while the `that` and `create` are fired by the main contract.
 
@@ -583,7 +583,7 @@ Look at your application. What are the assumptions you have about the values in 
 
 Now after all that, we can tell you that not much is required to assert in our program except for the fact that no matter the amount of up-votes or down-votes a proposal has that an outcome must always be discernable.
 
-Now that we know what the properties are, we need to encode them into our program via calls to Reach functions such as `assert`, and `forall` and another concept called Enumerations. Let's do that now.
+Now that we know what the properties are, we need to encode them into our program via calls to Reach functions such as [`assert`](https://docs.reach.sh/rsh/compute/#assert), and [`forall`](https://docs.reach.sh/rsh/compute/#forall) and another concept called [Enumerations](https://docs.reach.sh/rsh/compute/#term_enumeration). Let's do that now.
 
 **Insert assertions into the program corresponding to the facts that should be true.**
 
@@ -629,7 +629,7 @@ We would soon be able to run our program, after making a few additions.
 
 ## Interaction Introduction
 
-Next, we need to insert the appropriate calls to interact. In this case, our program although complex, doesn't require an equally complex interaction between the sole participant and the contract, instead, we'll need a simple call to the frontend to send the contract information defined during the _Data Definition_ step over.  
+Next, we need to insert the appropriate calls to interact. In this case, our program although complex, doesn't require an equally complex interaction between the sole participant and the contract, instead, we'll need a simple call to the frontend to send over the contract information defined during the [**Data Definition**](#data-definition) section.  
 
 In our program, that means defining `description`, `isProposal`, `title`, `link`, `owner`, `id`, and `deadline` by Deployer. Do that in your code now.  
 
@@ -1892,4 +1892,4 @@ This workshop uses a "top-down" perspective on Reach application design, where y
 
 If you found this workshop rewarding, please let us know on the [Discord](bit.ly/3BnPyKd) community!  
 
-Stay tuned for a tutorial version of this workshop! Then we find a more efficient way to handle the interactions between the main contract and a proposal contract.  
+Stay tuned for a tutorial version of this workshop! Then we'll cover a more efficient way to handle the interactions between the main contract and a proposal contract.  
