@@ -89,6 +89,10 @@ And the rest of the awesome team at Reach, The African Blockchain Alliance and T
 
 ![Bounties](images/Bounties.png)
 
+## Workshop
+
+For a guide on building a similar DApp go through the [Reach DAO Workshop](./WORKSHOP.md).
+
 ## Authors
 
 - Owolabi Adeyemi
