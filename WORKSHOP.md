@@ -508,7 +508,7 @@ if (isProposal) {
  } else {
     // 3. Depending on the purpose of deployment:
     //    II. For the main contract, it waits indefinitely for any data sent from the frontend  
-    //        from an Event fired by a proposal contract to notify all connected of the change
+    //        from an Event fired by a proposal contract to notify all connected parties of the occurrence
     const keepGoing = parallelReduce(true)
         .invariant(balance() == 0)
         .while(keepGoing)
